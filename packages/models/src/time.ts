@@ -75,12 +75,17 @@ export function timeModel(
   }
 
   const params = [
-    { name: "delta" as const, label: "Monthly discount factor δ", values: options.grid?.delta ?? linspace(0.2, 1, 17) },
+    {
+      name: "delta" as const,
+      label: "Monthly discount factor δ",
+      values: options.grid?.delta ?? linspace(0.2, 1, 17),
+    },
     { name: "beta" as const, label: "Present bias β", values: options.grid?.beta ?? linspace(0.4, 1, 13) },
     { name: "mu" as const, label: "Choice consistency μ", values: options.grid?.mu ?? linspace(0.25, 8, 10) },
   ];
 
-  const discount = (t: Theta<TimeParam>, days: number) => (days === 0 ? 1 : t.beta * Math.pow(t.delta, days / 30));
+  const discount = (t: Theta<TimeParam>, days: number) =>
+    days === 0 ? 1 : t.beta * Math.pow(t.delta, days / 30);
   const value = (t: Theta<TimeParam>, rho: number, x: number, days: number) =>
     discount(t, days) * Math.pow(x / POINTS_PER_DOLLAR, rho);
   const fmt = (x: number) => x.toLocaleString("en-US");
@@ -89,7 +94,10 @@ export function timeModel(
   const base = {
     label: "Time",
     questions,
-    describe: (q: TimeQuestion) => ({ a: `${fmt(q.early)} points ${when(q.tEarly)}`, b: `${fmt(q.late)} points ${when(q.tLate)}` }),
+    describe: (q: TimeQuestion) => ({
+      a: `${fmt(q.early)} points ${when(q.tEarly)}`,
+      b: `${fmt(q.late)} points ${when(q.tLate)}`,
+    }),
   };
 
   if (joint) {
@@ -97,8 +105,12 @@ export function timeModel(
       ...base,
       id: "time-joint",
       label: "Time (joint ρ)",
-      params: [...params, { name: "rho", label: "Utility curvature ρ", values: options.grid?.rho ?? linspace(0.2, 1.7, 8) }],
-      probA: (t, q) => logistic(t.mu * (value(t, t.rho, q.early, q.tEarly) - value(t, t.rho, q.late, q.tLate))),
+      params: [
+        ...params,
+        { name: "rho", label: "Utility curvature ρ", values: options.grid?.rho ?? linspace(0.2, 1.7, 8) },
+      ],
+      probA: (t, q) =>
+        logistic(t.mu * (value(t, t.rho, q.early, q.tEarly) - value(t, t.rho, q.late, q.tLate))),
     };
     return m;
   }
@@ -106,7 +118,8 @@ export function timeModel(
     ...base,
     id: "time",
     params,
-    probA: (t, q) => logistic(t.mu * (value(t, fixedRho, q.early, q.tEarly) - value(t, fixedRho, q.late, q.tLate))),
+    probA: (t, q) =>
+      logistic(t.mu * (value(t, fixedRho, q.early, q.tEarly) - value(t, fixedRho, q.late, q.tLate))),
   };
   return m;
 }

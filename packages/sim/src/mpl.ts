@@ -32,14 +32,23 @@ const DEFAULT_LOSS_ROWS = [-4500, -3500, -2500, -1500, -500, 500, 1500, 2500, 35
 const clamp = (x: number, [lo, hi]: readonly [number, number]) => Math.min(hi, Math.max(lo, x));
 
 /** Certainty equivalent (points) from the first row where the sure amount is taken. */
-function certaintyEquivalent(rows: readonly number[], takesSure: readonly boolean[], top: number, bottom: number): number {
+function certaintyEquivalent(
+  rows: readonly number[],
+  takesSure: readonly boolean[],
+  top: number,
+  bottom: number,
+): number {
   const first = takesSure.indexOf(true);
   if (first === -1) return (rows[rows.length - 1]! + top) / 2;
   if (first === 0) return (bottom + rows[0]!) / 2;
   return (rows[first - 1]! + rows[first]!) / 2;
 }
 
-export function simulateDoubleMpl(truth: Theta<RiskParam>, rand: Rng, options: DoubleMplOptions = {}): MplEstimate {
+export function simulateDoubleMpl(
+  truth: Theta<RiskParam>,
+  rand: Rng,
+  options: DoubleMplOptions = {},
+): MplEstimate {
   const prize = options.prize ?? 10_000;
   const riskRows = options.riskRows ?? DEFAULT_RISK_ROWS;
   const lossRows = options.lossRows ?? DEFAULT_LOSS_ROWS;

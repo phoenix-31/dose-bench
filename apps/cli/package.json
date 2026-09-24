@@ -4,8 +4,13 @@
   "description": "Command-line tools for DOSE: compile question trees, run recovery simulations, re-fit and validate data files.",
   "license": "MIT",
   "type": "module",
-  "bin": { "dose": "./dist/cli.js" },
-  "files": ["dist", "README.md"],
+  "bin": {
+    "dose": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc -p tsconfig.json"
@@ -16,5 +21,9 @@
     "@dose-bench/models": "workspace:^",
     "@dose-bench/sim": "workspace:^"
   },
-  "repository": { "type": "git", "url": "https://github.com/OWNER/dose-bench", "directory": "apps/cli" }
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OWNER/dose-bench",
+    "directory": "apps/cli"
+  }
 }

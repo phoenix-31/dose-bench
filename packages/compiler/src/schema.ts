@@ -27,7 +27,11 @@ export const treeSchema = z
   .superRefine((t, ctx) => {
     const expected = 2 ** (t.length + 1) - 1;
     if (t.nodes.length !== expected) {
-      ctx.addIssue({ code: "custom", message: `expected ${expected} nodes for length ${t.length}, found ${t.nodes.length}`, path: ["nodes"] });
+      ctx.addIssue({
+        code: "custom",
+        message: `expected ${expected} nodes for length ${t.length}, found ${t.nodes.length}`,
+        path: ["nodes"],
+      });
       return;
     }
     const seen = new Uint8Array(t.nodes.length);
@@ -36,21 +40,36 @@ export const treeSchema = z
       const [i, depth] = stack.pop()!;
       const n = t.nodes[i];
       if (!n || seen[i]) {
-        ctx.addIssue({ code: "custom", message: `node ${i} is missing or reached twice`, path: ["nodes", i] });
+        ctx.addIssue({
+          code: "custom",
+          message: `node ${i} is missing or reached twice`,
+          path: ["nodes", i],
+        });
         return;
       }
       seen[i] = 1;
       if ("est" in n) {
-        if (depth !== t.length) ctx.addIssue({ code: "custom", message: `leaf ${i} at depth ${depth}`, path: ["nodes", i] });
+        if (depth !== t.length)
+          ctx.addIssue({ code: "custom", message: `leaf ${i} at depth ${depth}`, path: ["nodes", i] });
         const missing = t.params.filter((p) => !(p in n.est));
-        if (missing.length) ctx.addIssue({ code: "custom", message: `leaf ${i} lacks ${missing.join(", ")}`, path: ["nodes", i] });
+        if (missing.length)
+          ctx.addIssue({
+            code: "custom",
+            message: `leaf ${i} lacks ${missing.join(", ")}`,
+            path: ["nodes", i],
+          });
         continue;
       }
       if (depth >= t.length) {
-        ctx.addIssue({ code: "custom", message: `decision node ${i} below the last question`, path: ["nodes", i] });
+        ctx.addIssue({
+          code: "custom",
+          message: `decision node ${i} below the last question`,
+          path: ["nodes", i],
+        });
         return;
       }
-      if (n.q >= t.questions.length) ctx.addIssue({ code: "custom", message: `node ${i} references question ${n.q}`, path: ["nodes", i] });
+      if (n.q >= t.questions.length)
+        ctx.addIssue({ code: "custom", message: `node ${i} references question ${n.q}`, path: ["nodes", i] });
       stack.push([n.A, depth + 1], [n.B, depth + 1]);
     }
   });
@@ -78,7 +97,9 @@ const toErrors = (e: z.ZodError) => e.issues.map((i) => `${i.path.join(".") || "
 
 export function validateTree(data: unknown): ValidationResult<Tree> {
   const r = treeSchema.safeParse(data);
-  return r.success ? { ok: true, value: r.data as unknown as Tree } : { ok: false, errors: toErrors(r.error) };
+  return r.success
+    ? { ok: true, value: r.data as unknown as Tree }
+    : { ok: false, errors: toErrors(r.error) };
 }
 
 export function validateTrace(data: unknown): ValidationResult<Trace> {

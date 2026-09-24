@@ -10,7 +10,8 @@ import { getEngine, param, type ModuleId } from "@/lib/modules";
 import { runWorker, type WorkerTask } from "@/lib/worker-task";
 import type { CompileInput } from "@/workers/compile.worker";
 
-const makeWorker = () => new Worker(new URL("../workers/compile.worker.ts", import.meta.url), { type: "module" });
+const makeWorker = () =>
+  new Worker(new URL("../workers/compile.worker.ts", import.meta.url), { type: "module" });
 
 export function CompileView({ moduleId }: { moduleId: ModuleId }) {
   const engine = getEngine(moduleId);
@@ -71,29 +72,44 @@ export function CompileView({ moduleId }: { moduleId: ModuleId }) {
         <CardHeader>
           <CardTitle>Compile a static question tree</CardTitle>
           <CardDescription>
-            For panels that can't run code mid-survey, the same engine precomputes every path. Each node names a question and the next node for
-            each answer. Compilation runs in a Web Worker, so the page stays responsive.
+            For panels that can't run code mid-survey, the same engine precomputes every path. Each node names
+            a question and the next node for each answer. Compilation runs in a Web Worker, so the page stays
+            responsive.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
           <div className="flex flex-wrap items-end gap-3">
             <label className="text-muted-foreground flex flex-col gap-1 text-sm">
               Questions per participant
-              <Select value={String(length)} onValueChange={(v) => { setLength(Number(v)); void compile(Number(v)); }}>
-                <SelectTrigger className="w-64" aria-label="Questions per participant"><SelectValue /></SelectTrigger>
+              <Select
+                value={String(length)}
+                onValueChange={(v) => {
+                  setLength(Number(v));
+                  void compile(Number(v));
+                }}
+              >
+                <SelectTrigger className="w-64" aria-label="Questions per participant">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {[4, 6, 8, 10, 12].map((n) => (
-                    <SelectItem key={n} value={String(n)}>{n} questions ({(2 ** n - 1).toLocaleString()} decision nodes)</SelectItem>
+                    <SelectItem key={n} value={String(n)}>
+                      {n} questions ({(2 ** n - 1).toLocaleString()} decision nodes)
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </label>
-            <Button variant="outline" onClick={download} disabled={!tree}><Download /> Download JSON</Button>
+            <Button variant="outline" onClick={download} disabled={!tree}>
+              <Download /> Download JSON
+            </Button>
           </div>
           {progress !== null && (
             <div className="flex flex-col gap-1">
               <Progress value={progress * 100} />
-              <span className="text-muted-foreground font-mono text-xs">compiling… {Math.round(progress * 100)}%</span>
+              <span className="text-muted-foreground font-mono text-xs">
+                compiling… {Math.round(progress * 100)}%
+              </span>
             </div>
           )}
           {error && <p className="text-destructive text-sm">Compilation failed: {error}</p>}
@@ -112,7 +128,11 @@ export function CompileView({ moduleId }: { moduleId: ModuleId }) {
                   </div>
                 ))}
               </dl>
-              <CodeBlock text={json.length > 4000 ? `${json.slice(0, 4000)} …` : json} copyText={json} label={`Copy ${(json.length / 1024).toFixed(0)} KB`} />
+              <CodeBlock
+                text={json.length > 4000 ? `${json.slice(0, 4000)} …` : json}
+                copyText={json}
+                label={`Copy ${(json.length / 1024).toFixed(0)} KB`}
+              />
             </>
           )}
         </CardContent>
@@ -121,9 +141,15 @@ export function CompileView({ moduleId }: { moduleId: ModuleId }) {
       <Card>
         <CardHeader>
           <CardTitle>Walk the compiled tree</CardTitle>
-          <CardDescription>This is all a survey platform does at run time: show a question, follow A or B. No maths.</CardDescription>
+          <CardDescription>
+            This is all a survey platform does at run time: show a question, follow A or B. No maths.
+          </CardDescription>
           {path.length > 0 && (
-            <CardAction><Button variant="ghost" size="sm" onClick={() => setPath([])}>Back to root</Button></CardAction>
+            <CardAction>
+              <Button variant="ghost" size="sm" onClick={() => setPath([])}>
+                Back to root
+              </Button>
+            </CardAction>
           )}
         </CardHeader>
         <CardContent>
@@ -133,9 +159,15 @@ export function CompileView({ moduleId }: { moduleId: ModuleId }) {
               <li key={i} className="grid grid-cols-[2rem_1fr] gap-2 border-t py-2.5 text-sm">
                 <span className="num text-muted-foreground">{i + 1}</span>
                 <span className="flex flex-col gap-0.5">
-                  <span className={st.choseA ? "font-semibold" : "text-muted-foreground"}>{st.choseA && "✓ "}{st.text?.a}</span>
+                  <span className={st.choseA ? "font-semibold" : "text-muted-foreground"}>
+                    {st.choseA && "✓ "}
+                    {st.text?.a}
+                  </span>
                   <span className="text-muted-foreground text-xs">or</span>
-                  <span className={!st.choseA ? "font-semibold" : "text-muted-foreground"}>{!st.choseA && "✓ "}{st.text?.b}</span>
+                  <span className={!st.choseA ? "font-semibold" : "text-muted-foreground"}>
+                    {!st.choseA && "✓ "}
+                    {st.text?.b}
+                  </span>
                 </span>
               </li>
             ))}
@@ -144,8 +176,16 @@ export function CompileView({ moduleId }: { moduleId: ModuleId }) {
                 <span className="num text-muted-foreground">{steps.length + 1}</span>
                 <span className="flex flex-col gap-2">
                   {(["A", "B"] as const).map((side) => (
-                    <Button key={side} variant="outline" className="h-auto justify-start py-2 text-left whitespace-normal" onClick={() => setPath([...path, side === "A"])}>
-                      <b className="font-mono">{side}</b> {side === "A" ? engine.model.describe?.(tree.questions[current.q]!).a : engine.model.describe?.(tree.questions[current.q]!).b}
+                    <Button
+                      key={side}
+                      variant="outline"
+                      className="h-auto justify-start py-2 text-left whitespace-normal"
+                      onClick={() => setPath([...path, side === "A"])}
+                    >
+                      <b className="font-mono">{side}</b>{" "}
+                      {side === "A"
+                        ? engine.model.describe?.(tree.questions[current.q]!).a
+                        : engine.model.describe?.(tree.questions[current.q]!).b}
                     </Button>
                   ))}
                 </span>
@@ -157,7 +197,9 @@ export function CompileView({ moduleId }: { moduleId: ModuleId }) {
                 <span className="flex flex-wrap items-center gap-2">
                   Leaf reached. Stored estimate:
                   {Object.entries(current.est).map(([k, [m, sd]]) => (
-                    <span key={k} className="bg-accent num rounded-md px-2 py-0.5">{param(k).sym} {m.toFixed(2)} ± {sd.toFixed(2)}</span>
+                    <span key={k} className="bg-accent num rounded-md px-2 py-0.5">
+                      {param(k).sym} {m.toFixed(2)} ± {sd.toFixed(2)}
+                    </span>
                   ))}
                 </span>
               </li>

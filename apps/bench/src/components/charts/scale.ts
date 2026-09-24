@@ -18,4 +18,8 @@ export function niceMax(v: number): number {
 }
 
 export const fmtTick = (v: number): string =>
-  Math.abs(v - Math.round(v)) < 1e-9 ? String(Math.round(v)) : Math.abs(v * 10 - Math.round(v * 10)) < 1e-9 ? v.toFixed(1) : v.toFixed(2);
+  Math.abs(v - Math.round(v)) < 1e-9
+    ? String(Math.round(v))
+    : Math.abs(v * 10 - Math.round(v * 10)) < 1e-9
+      ? v.toFixed(1)
+      : v.toFixed(2);

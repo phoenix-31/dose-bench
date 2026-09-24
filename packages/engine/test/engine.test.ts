@@ -61,7 +61,12 @@ describe("makeGrid", () => {
   });
 
   it("rejects duplicate parameter names", () => {
-    expect(() => makeGrid([{ name: "a", label: "", values: [1] }, { name: "a", label: "", values: [2] }])).toThrow();
+    expect(() =>
+      makeGrid([
+        { name: "a", label: "", values: [1] },
+        { name: "a", label: "", values: [2] },
+      ]),
+    ).toThrow();
   });
 });
 
@@ -79,7 +84,9 @@ describe("createEngine", () => {
   });
 
   it("rejects duplicate question ids and bad priors", () => {
-    expect(() => createEngine({ ...toy, questions: [toy.questions[0]!, toy.questions[0]!] })).toThrow(/duplicate/);
+    expect(() => createEngine({ ...toy, questions: [toy.questions[0]!, toy.questions[0]!] })).toThrow(
+      /duplicate/,
+    );
     expect(() => createEngine(toy, { prior: [1, 2] })).toThrow(/prior/);
   });
 
@@ -102,7 +109,9 @@ describe("information gain", () => {
       if (q.s > 5) expect(g0[i]).toBe(-1); // design constraint on question 1
     });
     const first = selectQuestion(engine, engine.prior);
-    const g1 = infoGains(engine, engine.prior, [{ index: first.index, question: toy.questions[first.index]!, choseA: true }]);
+    const g1 = infoGains(engine, engine.prior, [
+      { index: first.index, question: toy.questions[first.index]!, choseA: true },
+    ]);
     expect(g1[first.index]).toBe(-1);
   });
 });
@@ -110,12 +119,15 @@ describe("information gain", () => {
 describe("Bayes update", () => {
   it("keeps the posterior a probability distribution for any answer sequence", () => {
     fc.assert(
-      fc.property(fc.array(fc.tuple(fc.integer({ min: 0, max: 39 }), fc.boolean()), { maxLength: 30 }), (answers) => {
-        let p = engine.prior;
-        for (const [q, a] of answers) p = update(engine, p, q, a);
-        expect(sum(p)).toBeCloseTo(1, 9);
-        for (const w of p) expect(w).toBeGreaterThanOrEqual(0);
-      }),
+      fc.property(
+        fc.array(fc.tuple(fc.integer({ min: 0, max: 39 }), fc.boolean()), { maxLength: 30 }),
+        (answers) => {
+          let p = engine.prior;
+          for (const [q, a] of answers) p = update(engine, p, q, a);
+          expect(sum(p)).toBeCloseTo(1, 9);
+          for (const w of p) expect(w).toBeGreaterThanOrEqual(0);
+        },
+      ),
     );
   });
 

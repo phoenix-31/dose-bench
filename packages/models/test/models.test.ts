@@ -78,7 +78,10 @@ describe("timeModel", () => {
       if (q.tEarly > 0) expect(a).toBe(b);
     }
     const flips = m.questions.filter(
-      (q) => q.tEarly === 0 && (m.probA({ delta: 0.9, beta: 0.5, mu: 3 }, q) > 0.5) !== (m.probA({ delta: 0.9, beta: 1, mu: 3 }, q) > 0.5),
+      (q) =>
+        q.tEarly === 0 &&
+        m.probA({ delta: 0.9, beta: 0.5, mu: 3 }, q) > 0.5 !==
+          m.probA({ delta: 0.9, beta: 1, mu: 3 }, q) > 0.5,
     );
     expect(flips.length).toBeGreaterThan(0);
   });

@@ -91,7 +91,12 @@ export function defaultDraw(modelId: string): ((rand: Rng) => Record<string, num
     case "time":
       return (r) => ({ delta: 0.55 + 0.45 * r(), beta: 0.6 + 0.4 * r(), mu: 1 + 5 * r() });
     case "time-joint":
-      return (r) => ({ delta: 0.55 + 0.45 * r(), beta: 0.6 + 0.4 * r(), mu: 1 + 5 * r(), rho: 0.45 + 0.8 * r() });
+      return (r) => ({
+        delta: 0.55 + 0.45 * r(),
+        beta: 0.6 + 0.4 * r(),
+        mu: 1 + 5 * r(),
+        rho: 0.45 + 0.8 * r(),
+      });
     default:
       return undefined;
   }
@@ -110,7 +115,10 @@ export async function recovery<P extends string, Q extends Question>(
   const length = options.length ?? 10;
   const seed = options.seed ?? 7;
   const draw = options.draw ?? (defaultDraw(engine.model.id) as ((r: Rng) => Theta<P>) | undefined);
-  if (!draw) throw new Error(`recovery: no default parameter distribution for model "${engine.model.id}"; pass options.draw`);
+  if (!draw)
+    throw new Error(
+      `recovery: no default parameter distribution for model "${engine.model.id}"; pass options.draw`,
+    );
   const runMpl = options.mpl ?? engine.model.id === "risk-loss";
   const names = engine.grid.names;
 
@@ -140,7 +148,12 @@ export async function recovery<P extends string, Q extends Question>(
       const series: Accuracy[] = [];
       const steps = Math.min(...paths[policy].map((p) => p.length));
       for (let t = 0; t < steps; t++) {
-        series.push(accuracy(paths[policy].map((p) => p[t]![name]), truths.map((x) => x[name])));
+        series.push(
+          accuracy(
+            paths[policy].map((p) => p[t]![name]),
+            truths.map((x) => x[name]),
+          ),
+        );
       }
       byQuestion[policy][name] = series;
     }
@@ -154,8 +167,14 @@ export async function recovery<P extends string, Q extends Question>(
   return {
     ...result,
     mpl: {
-      rho: accuracy(mplEst.map((e) => e.rho), t.map((x) => x.rho)),
-      lambda: accuracy(ok.map(([e]) => e.lambda!), ok.map(([, i]) => t[i]!.lambda)),
+      rho: accuracy(
+        mplEst.map((e) => e.rho),
+        t.map((x) => x.rho),
+      ),
+      lambda: accuracy(
+        ok.map(([e]) => e.lambda!),
+        ok.map(([, i]) => t[i]!.lambda),
+      ),
       failed: n - ok.length,
     },
   };

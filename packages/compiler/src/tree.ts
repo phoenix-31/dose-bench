@@ -85,7 +85,8 @@ export async function compileTree<P extends string, Q extends Question>(
     if (history.length === length) {
       const s = summarize(engine, p);
       const est: Record<string, readonly [number, number]> = {};
-      for (const name of engine.grid.names) est[name] = [round(s.params[name].mean), round(s.params[name].sd)];
+      for (const name of engine.grid.names)
+        est[name] = [round(s.params[name].mean), round(s.params[name].sd)];
       nodes.push({ est });
       return id;
     }

@@ -1,4 +1,12 @@
-import { selectQuestion, summarize, update, type Engine, type IndexedAnswer, type Posterior, type Summary } from "./engine.js";
+import {
+  selectQuestion,
+  summarize,
+  update,
+  type Engine,
+  type IndexedAnswer,
+  type Posterior,
+  type Summary,
+} from "./engine.js";
 import { now } from "./math.js";
 import type { OptionText, Question } from "./types.js";
 
@@ -63,8 +71,10 @@ export class DoseSession<P extends string = string, Q extends Question = Questio
   constructor(engine: Engine<P, Q>, options: SessionOptions = {}) {
     this.engine = engine;
     this.length = options.length ?? 10;
-    if (!Number.isInteger(this.length) || this.length < 1) throw new RangeError("length must be a positive integer");
-    if (options.prior && options.prior.length !== engine.nPoints) throw new Error("prior does not match the engine grid");
+    if (!Number.isInteger(this.length) || this.length < 1)
+      throw new RangeError("length must be a positive integer");
+    if (options.prior && options.prior.length !== engine.nPoints)
+      throw new Error("prior does not match the engine grid");
     this.#posterior = Float64Array.from(options.prior ?? engine.prior);
     this.#entropy = summarize(engine, this.#posterior).entropyBits;
   }

@@ -2,7 +2,15 @@ import { Check, Copy } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-export function CodeBlock({ text, copyText, label = "Copy" }: { text: string; copyText?: string; label?: string }) {
+export function CodeBlock({
+  text,
+  copyText,
+  label = "Copy",
+}: {
+  text: string;
+  copyText?: string;
+  label?: string;
+}) {
   const [state, setState] = useState<"idle" | "copied" | "selected">("idle");
   const pre = useRef<HTMLPreElement>(null);
   const copy = async () => {
@@ -27,7 +35,10 @@ export function CodeBlock({ text, copyText, label = "Copy" }: { text: string; co
         {state === "copied" ? <Check /> : <Copy />}
         {state === "copied" ? "Copied" : state === "selected" ? "Selected: press Ctrl+C" : label}
       </Button>
-      <pre ref={pre} className="bg-muted max-h-96 overflow-auto rounded-lg border p-4 pr-28 font-mono text-[12.5px] leading-relaxed">
+      <pre
+        ref={pre}
+        className="bg-muted max-h-96 overflow-auto rounded-lg border p-4 pr-28 font-mono text-[12.5px] leading-relaxed"
+      >
         <code>{text}</code>
       </pre>
     </div>

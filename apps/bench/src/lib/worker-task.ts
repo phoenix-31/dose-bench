@@ -1,4 +1,5 @@
-export type WorkerMessage<T> = { type: "progress"; fraction: number } | { type: "done"; result: T } | { type: "error"; message: string };
+export type WorkerMessage<T> =
+  { type: "progress"; fraction: number } | { type: "done"; result: T } | { type: "error"; message: string };
 
 export interface WorkerTask<T> {
   readonly promise: Promise<T>;
@@ -6,7 +7,11 @@ export interface WorkerTask<T> {
 }
 
 /** Run one job in a fresh worker, reporting progress. Cancelling terminates the worker. */
-export function runWorker<I, T>(makeWorker: () => Worker, input: I, onProgress?: (fraction: number) => void): WorkerTask<T> {
+export function runWorker<I, T>(
+  makeWorker: () => Worker,
+  input: I,
+  onProgress?: (fraction: number) => void,
+): WorkerTask<T> {
   const worker = makeWorker();
   let settle: ((e: Error) => void) | undefined;
   const promise = new Promise<T>((resolve, reject) => {

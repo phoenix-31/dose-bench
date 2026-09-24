@@ -62,7 +62,8 @@ export function createEngine<P extends string, Q extends Question>(
 
   const prior = new Float64Array(K);
   if (options.prior) {
-    if (options.prior.length !== K) throw new Error(`createEngine: prior has ${options.prior.length} weights, grid has ${K}`);
+    if (options.prior.length !== K)
+      throw new Error(`createEngine: prior has ${options.prior.length} weights, grid has ${K}`);
     let z = 0;
     for (let k = 0; k < K; k++) {
       const w = options.prior[k]!;
@@ -192,7 +193,10 @@ export interface Summary<P extends string = string> {
   readonly entropyBits: number;
 }
 
-export function summarize<P extends string, Q extends Question>(engine: Engine<P, Q>, p: Posterior): Summary<P> {
+export function summarize<P extends string, Q extends Question>(
+  engine: Engine<P, Q>,
+  p: Posterior,
+): Summary<P> {
   const { grid, nPoints: K } = engine;
   const params = {} as Record<P, ParamSummary>;
   for (const spec of grid.params) {

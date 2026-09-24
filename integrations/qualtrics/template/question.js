@@ -26,8 +26,14 @@ Qualtrics.SurveyEngine.addOnReady(function () {
     b.textContent = item.text.b;
     count.textContent = "Question " + (session.history.length + 1) + " of " + LENGTH;
   }
-  a.onclick = function () { session.answer(true); show(); };
-  b.onclick = function () { session.answer(false); show(); };
+  a.onclick = function () {
+    session.answer(true);
+    show();
+  };
+  b.onclick = function () {
+    session.answer(false);
+    show();
+  };
 
   q.hideNextButton();
   show();

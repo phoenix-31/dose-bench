@@ -6,10 +6,16 @@ function Slider({ className, ...props }: React.ComponentProps<typeof SliderPrimi
   return (
     <SliderPrimitive.Root
       data-slot="slider"
-      className={cn("relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50", className)}
+      className={cn(
+        "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50",
+        className,
+      )}
       {...props}
     >
-      <SliderPrimitive.Track data-slot="slider-track" className="bg-muted relative h-1.5 w-full grow overflow-hidden rounded-full">
+      <SliderPrimitive.Track
+        data-slot="slider-track"
+        className="bg-muted relative h-1.5 w-full grow overflow-hidden rounded-full"
+      >
         <SliderPrimitive.Range data-slot="slider-range" className="bg-primary absolute h-full" />
       </SliderPrimitive.Track>
       {(props.value ?? props.defaultValue ?? [0]).map((_, i) => (

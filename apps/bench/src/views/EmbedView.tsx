@@ -66,15 +66,32 @@ export function EmbedView() {
         </CardHeader>
         <CardContent>
           <ul className="flex max-w-prose list-disc flex-col gap-3 pl-5 text-sm leading-relaxed">
-            <li><b>React.</b> <code>DoseModule</code> or <code>useDoseSession</code> from <code>@dose-bench/react</code>. Components are unstyled apart from an optional plain-CSS theme.</li>
-            <li><b>Any page, live.</b> <code>DoseSession</code> from <code>@dose-bench/engine</code> has no dependencies and runs in jsPsych, lab.js, oTree templates or a plain page.</li>
-            <li><b>Qualtrics.</b> The IIFE build exposes a global <code>DOSE</code>. Drive a two-button question from its JavaScript and store the trace as embedded data.</li>
-            <li><b>Precompiled tree.</b> For panels that can't run code mid-survey, compile with the CLI and ship JSON. The walker asks exactly what the live engine would.</li>
+            <li>
+              <b>React.</b> <code>DoseModule</code> or <code>useDoseSession</code> from{" "}
+              <code>@dose-bench/react</code>. Components are unstyled apart from an optional plain-CSS theme.
+            </li>
+            <li>
+              <b>Any page, live.</b> <code>DoseSession</code> from <code>@dose-bench/engine</code> has no
+              dependencies and runs in jsPsych, lab.js, oTree templates or a plain page.
+            </li>
+            <li>
+              <b>Qualtrics.</b> The IIFE build exposes a global <code>DOSE</code>. Drive a two-button question
+              from its JavaScript and store the trace as embedded data.
+            </li>
+            <li>
+              <b>Precompiled tree.</b> For panels that can't run code mid-survey, compile with the CLI and
+              ship JSON. The walker asks exactly what the live engine would.
+            </li>
           </ul>
         </CardContent>
       </Card>
       <div className="flex min-w-0 flex-col gap-4">
-        {[["React", REACT], ["Plain TypeScript", ESM], ["Qualtrics", QUALTRICS], ["Precompiled tree", TREE]].map(([label, code]) => (
+        {[
+          ["React", REACT],
+          ["Plain TypeScript", ESM],
+          ["Qualtrics", QUALTRICS],
+          ["Precompiled tree", TREE],
+        ].map(([label, code]) => (
           <div key={label} className="flex flex-col gap-2">
             <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">{label}</p>
             <CodeBlock text={code!} />

@@ -141,7 +141,15 @@ export function ChoiceCard<Q extends Question>({
   );
 }
 
-export function DoseProgress({ value, total, className }: { value: number; total: number; className?: string }) {
+export function DoseProgress({
+  value,
+  total,
+  className,
+}: {
+  value: number;
+  total: number;
+  className?: string;
+}) {
   return (
     <div
       className={["dose-progress", className].filter(Boolean).join(" ")}
@@ -159,7 +167,8 @@ export function DoseProgress({ value, total, className }: { value: number; total
 }
 
 export interface DoseModuleProps<P extends string, Q extends Question>
-  extends UseDoseSessionOptions<P>,
+  extends
+    UseDoseSessionOptions<P>,
     Pick<ChoiceCardProps<Q>, "prompt" | "renderOption" | "keyboard" | "className"> {
   readonly engine: Engine<P, Q>;
   /** Randomise which side option A appears on, per question. Default false. */

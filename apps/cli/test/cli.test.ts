@@ -67,7 +67,7 @@ describe("dose CLI", () => {
     const c = memIo();
     expect(await run(["compile", "nope"], c.io)).toBe(1);
     expect(c.err()).toMatch(/Unknown model/);
-    const d = memIo({ "bad.json": "{\"format\":\"dose-tree/1\"}" });
+    const d = memIo({ "bad.json": '{"format":"dose-tree/1"}' });
     expect(await run(["validate", "bad.json"], d.io)).toBe(1);
   });
 });

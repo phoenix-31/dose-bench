@@ -54,7 +54,12 @@ export interface ParamMeta {
 
 export const PARAMS: Readonly<Record<string, ParamMeta>> = {
   rho: { sym: "ρ", name: "Utility curvature", digits: 2, hint: "below 1 = risk averse over gains" },
-  lambda: { sym: "λ", name: "Loss aversion", digits: 2, hint: "above 1 = loss averse, below 1 = loss tolerant" },
+  lambda: {
+    sym: "λ",
+    name: "Loss aversion",
+    digits: 2,
+    hint: "above 1 = loss averse, below 1 = loss tolerant",
+  },
   mu: { sym: "μ", name: "Choice consistency", digits: 1, hint: "higher = fewer mistakes" },
   delta: { sym: "δ", name: "Monthly discount factor", digits: 2, hint: "1 = perfectly patient" },
   beta: { sym: "β", name: "Present bias", digits: 2, hint: "below 1 = present biased" },

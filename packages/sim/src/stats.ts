@@ -1,7 +1,7 @@
 function ranks(a: readonly number[]): number[] {
   const order = a.map((v, i) => [v, i] as const).sort((x, y) => x[0] - y[0]);
   const r = new Array<number>(a.length);
-  for (let i = 0; i < order.length; ) {
+  for (let i = 0; i < order.length;) {
     let j = i;
     while (j + 1 < order.length && order[j + 1]![0] === order[i]![0]) j++;
     for (let k = i; k <= j; k++) r[order[k]![1]] = (i + j) / 2;
@@ -30,7 +30,8 @@ export function spearman(a: readonly number[], b: readonly number[]): number {
   return da > 0 && db > 0 ? num / Math.sqrt(da * db) : 0;
 }
 
-export const mean = (a: readonly number[]): number => (a.length ? a.reduce((s, v) => s + v, 0) / a.length : Number.NaN);
+export const mean = (a: readonly number[]): number =>
+  a.length ? a.reduce((s, v) => s + v, 0) / a.length : Number.NaN;
 
 export interface Accuracy {
   /** Mean absolute error. */

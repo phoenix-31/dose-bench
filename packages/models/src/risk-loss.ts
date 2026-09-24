@@ -93,7 +93,10 @@ export function riskLossModel(options: RiskLossOptions = {}): Model<RiskParam, R
     describe(q) {
       return q.kind === "gain"
         ? { a: `50% chance of ${fmt(q.win)} points, 50% chance of 0`, b: `${fmt(q.sure)} points for sure` }
-        : { a: `50% chance to win ${fmt(q.win)} points, 50% chance to lose ${fmt(q.lose)}`, b: "0 points for sure" };
+        : {
+            a: `50% chance to win ${fmt(q.win)} points, 50% chance to lose ${fmt(q.lose)}`,
+            b: "0 points for sure",
+          };
     },
   };
 }

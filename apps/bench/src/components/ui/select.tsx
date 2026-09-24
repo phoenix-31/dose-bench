@@ -9,7 +9,11 @@ function Select(props: React.ComponentProps<typeof SelectPrimitive.Root>) {
 function SelectValue(props: React.ComponentProps<typeof SelectPrimitive.Value>) {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />;
 }
-function SelectTrigger({ className, children, ...props }: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
+function SelectTrigger({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
@@ -26,7 +30,12 @@ function SelectTrigger({ className, children, ...props }: React.ComponentProps<t
     </SelectPrimitive.Trigger>
   );
 }
-function SelectContent({ className, children, position = "popper", ...props }: React.ComponentProps<typeof SelectPrimitive.Content>) {
+function SelectContent({
+  className,
+  children,
+  position = "popper",
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Content>) {
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
@@ -39,7 +48,9 @@ function SelectContent({ className, children, position = "popper", ...props }: R
         )}
         {...props}
       >
-        <SelectPrimitive.Viewport className={cn("p-1", position === "popper" && "w-full min-w-(--radix-select-trigger-width)")}>
+        <SelectPrimitive.Viewport
+          className={cn("p-1", position === "popper" && "w-full min-w-(--radix-select-trigger-width)")}
+        >
           {children}
         </SelectPrimitive.Viewport>
       </SelectPrimitive.Content>
