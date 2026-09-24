@@ -13,8 +13,8 @@ pnpm --filter @dose-bench/qualtrics build   # -> dist/dose.iife.js (about 12 KB 
 
 1. Host `dist/dose.iife.js` somewhere you control (university web space, GitHub Pages).
 2. **Look & Feel → General → Header**: paste `template/header.html`, pointing `src` at your copy.
-3. **Survey Flow**: add Embedded Data fields `dose_trace`, `dose_rho`, `dose_lambda`, `dose_mu` *before* the DOSE block.
-4. Add a *Text / Graphic* question. Paste `template/question.html` into its HTML view and
+3. **Survey Flow**: add Embedded Data fields `dose_trace`, `dose_rho`, `dose_lambda`, `dose_mu` _before_ the DOSE block.
+4. Add a _Text / Graphic_ question. Paste `template/question.html` into its HTML view and
    `template/question.js` into its JavaScript.
 5. Preview. Each respondent gets their own question sequence; the full record lands in `dose_trace`.
 

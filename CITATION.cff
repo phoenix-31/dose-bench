@@ -1,0 +1,53 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the DOSE method paper and this repository."
+title: "DOSE Bench: a TypeScript implementation of Dynamically Optimized Sequential Experimentation"
+type: software
+version: 0.1.0
+date-released: 2026-09-24
+license: MIT
+authors:
+  - given-names: Tom
+repository-code: "https://github.com/OWNER/dose-bench"
+keywords:
+  - preference elicitation
+  - bayesian adaptive design
+  - experimental economics
+  - risk aversion
+  - loss aversion
+  - time preference
+preferred-citation:
+  type: report
+  title: "Dynamically Optimized Sequential Experimentation (DOSE) for Estimating Economic Preference Parameters"
+  authors:
+    - family-names: Chapman
+      given-names: Jonathan
+    - family-names: Snowberg
+      given-names: Erik
+    - family-names: Wang
+      given-names: Stephanie W.
+    - family-names: Camerer
+      given-names: Colin
+  institution:
+    name: National Bureau of Economic Research
+  number: "33013"
+  year: 2024
+  url: "https://www.nber.org/papers/w33013"
+references:
+  - type: article
+    title: "Looming Large or Seeming Small? Attitudes Towards Losses in a Representative Sample"
+    authors:
+      - family-names: Chapman
+        given-names: Jonathan
+      - family-names: Snowberg
+        given-names: Erik
+      - family-names: Wang
+        given-names: Stephanie W.
+      - family-names: Camerer
+        given-names: Colin
+    journal: "The Review of Economic Studies"
+    volume: 92
+    issue: 5
+    start: 2893
+    end: 2922
+    year: 2025
+    doi: "10.1093/restud/rdae093"
