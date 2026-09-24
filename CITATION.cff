@@ -6,8 +6,9 @@ version: 0.1.0
 date-released: 2026-09-24
 license: MIT
 authors:
-  - given-names: Tom
-repository-code: "https://github.com/OWNER/dose-bench"
+  - family-names: Hughes
+    given-names: Tom
+repository-code: "https://github.com/phoenix-31/dose-bench"
 keywords:
   - preference elicitation
   - bayesian adaptive design
