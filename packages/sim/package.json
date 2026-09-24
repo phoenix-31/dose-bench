@@ -7,7 +7,7 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "development": "./src/index.ts",
+      "dose-bench-source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"

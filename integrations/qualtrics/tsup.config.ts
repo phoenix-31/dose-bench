@@ -11,7 +11,7 @@ export default defineConfig({
   clean: true,
   noExternal: [/@dose-bench\//],
   esbuildOptions(o) {
-    o.conditions = ["development"];
+    o.conditions = ["dose-bench-source"];
   },
   outExtension: () => ({ js: ".iife.js" }),
 });

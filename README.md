@@ -111,7 +111,7 @@ pnpm format          # prettier
 pnpm changeset       # describe a change to a published package
 ```
 
-Packages resolve each other's TypeScript source through a `development` export condition, so tests, typechecks and the dev server need
+Packages resolve each other's TypeScript source through a private `dose-bench-source` export condition, so tests, typechecks and the dev server need
 no build step. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the maths, the data formats and how to add a model, and
 [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow.
 

@@ -1,6 +1,7 @@
 import { defineProject } from "vitest/config";
+import { sourceResolve } from "../../vitest.shared";
 
 export default defineProject({
-  resolve: { conditions: ["development"] },
+  ...sourceResolve,
   test: { name: "cli", environment: "node" },
 });

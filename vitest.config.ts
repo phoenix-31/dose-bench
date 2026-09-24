@@ -1,7 +1,8 @@
 import { defineConfig } from "vitest/config";
+import { sourceResolve } from "./vitest.shared";
 
 export default defineConfig({
-  resolve: { conditions: ["development"] },
+  ...sourceResolve,
   test: {
     projects: ["packages/*", "apps/cli"],
     passWithNoTests: true,
