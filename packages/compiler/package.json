@@ -42,5 +42,8 @@
   "dependencies": {
     "@dose-bench/engine": "workspace:^",
     "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@dose-bench/models": "workspace:^"
   }
 }
