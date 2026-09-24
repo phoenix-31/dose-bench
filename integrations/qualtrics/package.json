@@ -1,0 +1,16 @@
+{
+  "name": "@dose-bench/qualtrics",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Single-file IIFE build of DOSE (global `DOSE`) plus a Qualtrics question template.",
+  "type": "module",
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@dose-bench/compiler": "workspace:^",
+    "@dose-bench/engine": "workspace:^",
+    "@dose-bench/models": "workspace:^"
+  }
+}

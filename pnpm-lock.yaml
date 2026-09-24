@@ -106,6 +106,18 @@ importers:
         specifier: workspace:^
         version: link:../../packages/sim
 
+  integrations/qualtrics:
+    dependencies:
+      '@dose-bench/compiler':
+        specifier: workspace:^
+        version: link:../../packages/compiler
+      '@dose-bench/engine':
+        specifier: workspace:^
+        version: link:../../packages/engine
+      '@dose-bench/models':
+        specifier: workspace:^
+        version: link:../../packages/models
+
   packages/compiler:
     dependencies:
       '@dose-bench/engine':

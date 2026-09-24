@@ -1,0 +1,17 @@
+<!-- Question text (HTML view) of a "Text / Graphic" question. -->
+<div class="dose-q">
+  <p class="dose-prompt">Which would you rather have?</p>
+  <div class="dose-options">
+    <button type="button" class="dose-option dose-a"></button>
+    <button type="button" class="dose-option dose-b"></button>
+  </div>
+  <p class="dose-count"></p>
+</div>
+<style>
+  .dose-q { font: inherit; }
+  .dose-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  .dose-option { font: inherit; min-height: 110px; padding: 16px; border: 1.5px solid #d3dcda; border-radius: 12px; background: #f5f8f7; cursor: pointer; text-align: left; }
+  .dose-option:hover { border-color: #00806b; }
+  .dose-count { color: #5a6b68; font-size: 0.9em; }
+  @media (max-width: 480px) { .dose-options { grid-template-columns: 1fr; } }
+</style>
