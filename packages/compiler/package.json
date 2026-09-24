@@ -1,0 +1,46 @@
+{
+  "name": "@dose-bench/compiler",
+  "version": "0.1.0",
+  "description": "Compile DOSE modules into static JSON decision trees, walk them anywhere, and validate tree/trace files.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OWNER/dose-bench",
+    "directory": "packages/compiler"
+  },
+  "keywords": [
+    "dose",
+    "preference elicitation",
+    "bayesian adaptive design",
+    "experimental economics",
+    "risk aversion",
+    "loss aversion",
+    "time preference"
+  ],
+  "dependencies": {
+    "@dose-bench/engine": "workspace:^",
+    "zod": "^4.1.0"
+  }
+}

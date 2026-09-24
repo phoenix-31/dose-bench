@@ -1,0 +1,45 @@
+{
+  "name": "@dose-bench/models",
+  "version": "0.1.0",
+  "description": "Preference model presets for DOSE: prospect-theory risk & loss, quasi-hyperbolic time.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OWNER/dose-bench",
+    "directory": "packages/models"
+  },
+  "keywords": [
+    "dose",
+    "preference elicitation",
+    "bayesian adaptive design",
+    "experimental economics",
+    "risk aversion",
+    "loss aversion",
+    "time preference"
+  ],
+  "dependencies": {
+    "@dose-bench/engine": "workspace:^"
+  }
+}
