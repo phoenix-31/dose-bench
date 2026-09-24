@@ -6,5 +6,6 @@ const code = await run(process.argv.slice(2), {
   err: (t) => process.stderr.write(t),
   readFile: (p) => readFile(p, "utf8"),
   writeFile: (p, d) => writeFile(p, d, "utf8"),
+  interactive: Boolean(process.stderr.isTTY),
 });
 process.exitCode = code;

@@ -9,6 +9,8 @@ export interface Io {
   err(text: string): void;
   readFile(path: string): Promise<string>;
   writeFile(path: string, data: string): Promise<void>;
+  /** True when stderr is a terminal: enables the in-place progress indicator. */
+  readonly interactive?: boolean;
 }
 
 export const VERSION = "0.1.0";
@@ -36,7 +38,8 @@ const int = (v: string | undefined, name: string, fallback: number, min = 1): nu
   return n;
 };
 
-const fmtAcc = (a: Accuracy) => `${a.mae.toFixed(3).padStart(7)}  ${(a.inaccuracy * 100).toFixed(0).padStart(4)}%  ${a.spearman.toFixed(2).padStart(5)}`;
+const fmtAcc = (a: Accuracy) =>
+  `${a.mae.toFixed(3).padStart(7)}  ${(a.inaccuracy * 100).toFixed(0).padStart(4)}%  ${a.spearman.toFixed(2).padStart(5)}`;
 
 export async function run(argv: readonly string[], io: Io): Promise<number> {
   const [command, ...rest] = argv;
@@ -57,7 +60,12 @@ export async function run(argv: readonly string[], io: Io): Promise<number> {
         for (const id of Object.keys(presets)) {
           const m = presetById(id);
           const size = m.params.reduce((s, p) => s * p.values.length, 1);
-          io.out(`${id.padEnd(12)} ${m.label.padEnd(18)} params: ${m.params.map((p) => p.name).join(", ").padEnd(24)} grid: ${String(size).padStart(6)}  questions: ${m.questions.length}\n`);
+          io.out(
+            `${id.padEnd(12)} ${m.label.padEnd(18)} params: ${m.params
+              .map((p) => p.name)
+              .join(", ")
+              .padEnd(24)} grid: ${String(size).padStart(6)}  questions: ${m.questions.length}\n`,
+          );
         }
         return 0;
       }
@@ -77,14 +85,16 @@ export async function run(argv: readonly string[], io: Io): Promise<number> {
           length,
           onProgress: (f) => {
             const pct = Math.floor(f * 10) * 10;
-            if (pct !== lastPct && values.out) io.err(`\rcompiling ${id}: ${pct}%`);
+            if (pct !== lastPct && values.out && io.interactive) io.err(`\rcompiling ${id}: ${pct}%`);
             lastPct = pct;
           },
         });
         const json = JSON.stringify(tree, null, values.pretty ? 2 : undefined);
         if (values.out) {
           await io.writeFile(values.out, json + "\n");
-          io.err(`\rcompiled ${id}: ${tree.nodes.length} nodes, ${tree.questions.length} distinct questions, ${(json.length / 1024).toFixed(0)} KB in ${(tree.meta.compiledMs / 1000).toFixed(1)} s -> ${values.out}\n`);
+          io.err(
+            `${io.interactive ? "\r" : ""}compiled ${id}: ${tree.nodes.length} nodes, ${tree.questions.length} distinct questions, ${(json.length / 1024).toFixed(0)} KB in ${(tree.meta.compiledMs / 1000).toFixed(1)} s -> ${values.out}\n`,
+          );
         } else {
           io.out(json + "\n");
         }
@@ -95,7 +105,12 @@ export async function run(argv: readonly string[], io: Io): Promise<number> {
         const { values, positionals } = parseArgs({
           args: rest,
           allowPositionals: true,
-          options: { n: { type: "string" }, length: { type: "string" }, seed: { type: "string" }, json: { type: "boolean" } },
+          options: {
+            n: { type: "string" },
+            length: { type: "string" },
+            seed: { type: "string" },
+            json: { type: "boolean" },
+          },
         });
         const id = positionals[0];
         if (!id) throw new UsageError("recover needs a model id");
@@ -117,7 +132,10 @@ export async function run(argv: readonly string[], io: Io): Promise<number> {
           const mpl = r.mpl && (p === "rho" || p === "lambda") ? r.mpl[p] : undefined;
           if (mpl) io.out(`${"".padEnd(8)} ${"double MPL".padEnd(14)} ${fmtAcc(mpl)}\n`);
         }
-        if (r.mpl) io.out(`\nMPL could not recover lambda for ${r.mpl.failed} of ${r.n} people (FOSD-inconsistent answers).\n`);
+        if (r.mpl)
+          io.out(
+            `\nMPL could not recover lambda for ${r.mpl.failed} of ${r.n} people (FOSD-inconsistent answers).\n`,
+          );
         return 0;
       }
 
@@ -128,7 +146,9 @@ export async function run(argv: readonly string[], io: Io): Promise<number> {
         if (!v.ok) throw new UsageError(`not a valid dose-trace/1 file:\n  ${v.errors.join("\n  ")}`);
         const fit = fitTrace(presetById(id), v.value);
         for (const [name, s] of Object.entries(fit.summary.params)) {
-          io.out(`${name.padEnd(8)} mean ${s.mean.toFixed(3)}  sd ${s.sd.toFixed(3)}  90% [${s.ci90[0].toFixed(2)}, ${s.ci90[1].toFixed(2)}]\n`);
+          io.out(
+            `${name.padEnd(8)} mean ${s.mean.toFixed(3)}  sd ${s.sd.toFixed(3)}  90% [${s.ci90[0].toFixed(2)}, ${s.ci90[1].toFixed(2)}]\n`,
+          );
         }
         return 0;
       }
