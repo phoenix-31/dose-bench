@@ -1,8 +1,10 @@
 name: Release
 
 on:
-  push:
-    branches: [main]
+  # Releases on hold while development continues. Restore the push trigger to resume:
+  # push:
+  #   branches: [main]
+  workflow_dispatch:
 
 concurrency: release-${{ github.ref }}
 
