@@ -1,0 +1,84 @@
+/* Default look for @dose-bench/react. Plain CSS, scoped to .dose-* classes, themeable via custom properties.
+   Deliberately framework-free so it sits inside Qualtrics, jsPsych or oTree pages without clashing. */
+.dose-module,
+.dose-choice {
+  --dose-accent: #00806b;
+  --dose-ink: #11201e;
+  --dose-muted: #5a6b68;
+  --dose-line: #d3dcda;
+  --dose-surface: #f5f8f7;
+  --dose-radius: 14px;
+  font-family: inherit;
+  color: var(--dose-ink);
+}
+.dose-module {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dose-progress {
+  display: flex;
+  gap: 4px;
+}
+.dose-progress > span {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--dose-line);
+}
+.dose-progress > span[data-state="done"] {
+  background: var(--dose-accent);
+}
+.dose-progress > span[data-state="current"] {
+  background: color-mix(in oklab, var(--dose-accent) 40%, var(--dose-line));
+}
+.dose-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dose-prompt {
+  margin: 0;
+  font-size: 1.25em;
+  font-weight: 600;
+}
+.dose-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 460px) {
+  .dose-options {
+    grid-template-columns: 1fr;
+  }
+}
+.dose-option {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  min-height: 120px;
+  padding: 16px;
+  border: 1.5px solid var(--dose-line);
+  border-radius: var(--dose-radius);
+  background: var(--dose-surface);
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+.dose-option:hover:not(:disabled),
+.dose-option:focus-visible {
+  border-color: var(--dose-accent);
+  outline: none;
+}
+.dose-option:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.dose-complete {
+  padding: 12px 0;
+  font-weight: 500;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dose-option {
+    transition: none;
+  }
+}
