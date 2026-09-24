@@ -1,0 +1,118 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* shadcn/ui tokens, tuned to the DOSE Bench palette. Chart colours validated for CVD separation
+   in both themes (teal = DOSE, orange = random order, indigo = price list). */
+:root {
+  --radius: 0.75rem;
+  --background: #edf1f0;
+  --foreground: #11201e;
+  --card: #ffffff;
+  --card-foreground: #11201e;
+  --popover: #ffffff;
+  --popover-foreground: #11201e;
+  --primary: #00806b;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f6f5;
+  --secondary-foreground: #11201e;
+  --muted: #f3f6f5;
+  --muted-foreground: #5a6b68;
+  --accent: #dcefea;
+  --accent-foreground: #11201e;
+  --destructive: #b23a2e;
+  --border: #d3dcda;
+  --input: #d3dcda;
+  --ring: #00806b;
+  --chart-1: #00806b;
+  --chart-2: #c4561c;
+  --chart-3: #5b63d3;
+  --seq-lo: #eef4f2;
+  --seq-hi: #004d40;
+  --win: #00806b;
+  --lose: #b23a2e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    color-scheme: dark;
+    --background: #0d1514;
+    --foreground: #e3ecea;
+    --card: #15201f;
+    --card-foreground: #e3ecea;
+    --popover: #15201f;
+    --popover-foreground: #e3ecea;
+    --primary: #1fa08b;
+    --primary-foreground: #06110f;
+    --secondary: #1b2826;
+    --secondary-foreground: #e3ecea;
+    --muted: #1b2826;
+    --muted-foreground: #8ea19d;
+    --accent: #143a33;
+    --accent-foreground: #e3ecea;
+    --destructive: #e0695c;
+    --border: #2a3a37;
+    --input: #2a3a37;
+    --ring: #1fa08b;
+    --chart-1: #1fa08b;
+    --chart-2: #d46e30;
+    --chart-3: #7f86e8;
+    --seq-lo: #1a2725;
+    --seq-hi: #6fe0cb;
+    --win: #2fb39d;
+    --lose: #e0695c;
+  }
+}
+
+@theme inline {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-win: var(--win);
+  --color-lose: var(--lose);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+    text-wrap: balance;
+  }
+  .num {
+    @apply font-mono;
+    font-variant-numeric: tabular-nums;
+  }
+}
