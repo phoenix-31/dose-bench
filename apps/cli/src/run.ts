@@ -24,7 +24,7 @@ Usage
   dose recover <model> [--n 200] [--length 10] [--seed 7] [--json]
                                                 Parameter-recovery simulation vs baselines
   dose fit <model> <trace.json>                 Re-estimate a participant record under <model>
-  dose validate <file.json>                     Check a dose-tree/1 or dose-trace/1 file
+  dose validate <file.json>                     Check a dose-tree/1 or dose-trace/1|2 file
 
 Models: ${Object.keys(presets).join(", ")}
 `;
@@ -143,7 +143,7 @@ export async function run(argv: readonly string[], io: Io): Promise<number> {
         const [id, file] = rest;
         if (!id || !file) throw new UsageError("fit needs a model id and a trace file");
         const v = validateTrace(JSON.parse(await io.readFile(file)));
-        if (!v.ok) throw new UsageError(`not a valid dose-trace/1 file:\n  ${v.errors.join("\n  ")}`);
+        if (!v.ok) throw new UsageError(`not a valid dose-trace file:\n  ${v.errors.join("\n  ")}`);
         const fit = fitTrace(presetById(id), v.value);
         for (const [name, s] of Object.entries(fit.summary.params)) {
           io.out(
@@ -158,7 +158,10 @@ export async function run(argv: readonly string[], io: Io): Promise<number> {
         if (!file) throw new UsageError("validate needs a file");
         const data: unknown = JSON.parse(await io.readFile(file));
         const format = (data as { format?: unknown } | null)?.format;
-        const v = format === "dose-trace/1" ? validateTrace(data) : validateTree(data);
+        const v =
+          typeof format === "string" && format.startsWith("dose-trace/")
+            ? validateTrace(data)
+            : validateTree(data);
         if (v.ok) {
           io.out(`${file}: valid ${String(format)}\n`);
           return 0;

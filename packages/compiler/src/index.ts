@@ -9,4 +9,12 @@ export {
   type TreeNode,
   type TreeWalker,
 } from "./tree.js";
-export { traceSchema, treeSchema, validateTrace, validateTree, type ValidationResult } from "./schema.js";
+export {
+  traceSchema,
+  traceV1Schema,
+  traceV2Schema,
+  treeSchema,
+  validateTrace,
+  validateTree,
+  type ValidationResult,
+} from "./schema.js";

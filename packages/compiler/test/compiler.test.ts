@@ -89,4 +89,32 @@ describe("validateTrace", () => {
     expect(bad.ok).toBe(false);
     if (!bad.ok) expect(bad.errors.length).toBeGreaterThan(0);
   });
+
+  it("accepts partial v2 traces and still reads dose-trace/1", () => {
+    const s = new DoseSession(engine, { length: 3, sides: "random", seed: 1 });
+    s.answer(true);
+    expect(validateTrace(s.trace()).ok).toBe(true);
+    const v1 = {
+      format: "dose-trace/1",
+      model: "risk-loss",
+      length: 1,
+      answers: [{ n: 1, question: "G:10000:5000", choseA: false, rtMs: 2140, gainBits: 0.6 }],
+      estimate: { rho: { mean: 0.9, sd: 0.2 } },
+    };
+    expect(validateTrace(v1).ok).toBe(true);
+  });
+
+  it("checks v2 consistency: numbering, sides and completion", () => {
+    const s = new DoseSession(engine, { length: 2 });
+    s.answer(true);
+    const tr = s.trace();
+    const errors = (data: unknown) => {
+      const v = validateTrace(data);
+      return v.ok ? [] : v.errors;
+    };
+    expect(errors({ ...tr, answers: [{ ...tr.answers[0]!, n: 2 }] }).join()).toMatch(/n = 2/);
+    expect(errors({ ...tr, answers: [{ ...tr.answers[0]!, swapped: true }] }).join()).toMatch(/fixed-sides/);
+    expect(errors({ ...tr, completedAt: new Date().toISOString() }).join()).toMatch(/incomplete/);
+    expect(errors({ ...tr, format: "dose-trace/9" })).not.toHaveLength(0);
+  });
 });

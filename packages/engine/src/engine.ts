@@ -1,5 +1,5 @@
 import { makeGrid, type Grid } from "./grid.js";
-import { binaryEntropy, clampProb, now } from "./math.js";
+import { binaryEntropy, clampProb, hash53, now } from "./math.js";
 import type { Answer, Model, Question } from "./types.js";
 
 export type Posterior = Float64Array;
@@ -20,6 +20,12 @@ export interface Engine<P extends string = string, Q extends Question = Question
   readonly H: Float32Array;
   readonly prior: Posterior;
   readonly questionIndex: ReadonlyMap<string, number>;
+  /**
+   * Fingerprint of the design: model id, parameter grids, question space and prior. Two engines with the
+   * same fingerprint ask the same questions in the same order for the same answers (given the same choice
+   * rule, which cannot be hashed). Stored in traces so data can be matched to the design that produced it.
+   */
+  readonly design: string;
   readonly initMs: number;
 }
 
@@ -77,7 +83,8 @@ export function createEngine<P extends string, Q extends Question>(
     prior.fill(1 / K);
   }
 
-  return { model, grid, nPoints: K, nQuestions: nQ, L, H, prior, questionIndex, initMs: now() - t0 };
+  const design = designFingerprint(model, options.prior ? prior : null);
+  return { model, grid, nPoints: K, nQuestions: nQ, L, H, prior, questionIndex, design, initMs: now() - t0 };
 }
 
 /** Internal history: an answer plus the question's index in the engine. */
@@ -261,4 +268,17 @@ export function jointMarginal<P extends string, Q extends Question>(
   const iy = grid.idx[yName];
   for (let k = 0; k < K; k++) m[iy[k]!]![ix[k]!]! += p[k]!;
   return { x: xs.values, y: ys.values, m };
+}
+
+function designFingerprint<P extends string, Q extends Question>(
+  model: Model<P, Q>,
+  prior: Posterior | null,
+): string {
+  const parts = [
+    model.id,
+    JSON.stringify(model.params.map((p) => [p.name, p.values])),
+    JSON.stringify(model.questions),
+    prior ? Array.from(prior, (w) => w.toPrecision(9)).join(",") : "uniform",
+  ];
+  return hash53(parts.join("\n"));
 }

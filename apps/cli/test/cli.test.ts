@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { DoseSession, createEngine } from "@dose-bench/engine";
+import { riskLossModel } from "@dose-bench/models";
 import { run, type Io } from "../src/run.js";
 
 function memIo(files: Record<string, string> = {}) {
@@ -56,6 +58,16 @@ describe("dose CLI", () => {
     const f = memIo({ "t.json": JSON.stringify(trace) });
     expect(await run(["fit", "risk-loss", "t.json"], f.io)).toBe(0);
     expect(f.out()).toMatch(/lambda\s+mean/);
+  });
+
+  it("validates and re-fits a dose-trace/2 file from a live session", async () => {
+    const s = new DoseSession(createEngine(riskLossModel()), { length: 3, sides: "random" });
+    while (!s.done) s.choose("left");
+    const f = memIo({ "t.json": JSON.stringify(s.trace()) });
+    expect(await run(["validate", "t.json"], f.io)).toBe(0);
+    expect(f.out()).toMatch(/valid dose-trace\/2/);
+    expect(await run(["fit", "risk-loss", "t.json"], f.io)).toBe(0);
+    expect(f.out()).toMatch(/rho\s+mean/);
   });
 
   it("reports usage errors with exit code 2 and failures with 1", async () => {

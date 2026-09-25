@@ -1,4 +1,4 @@
-import { createEngine, linspace, logistic, type Model, type Question } from "@dose-bench/engine";
+import { DoseSession, createEngine, linspace, logistic, type Model, type Question } from "@dose-bench/engine";
 import { act, cleanup, fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ChoiceCard, DoseModule, useDoseSession } from "../src/index.js";
@@ -34,10 +34,40 @@ describe("useDoseSession", () => {
     expect(result.current.item).toBeNull();
     act(() => result.current.answer(true)); // ignored after completion
     expect(onComplete).toHaveBeenCalledTimes(1);
-    expect(onComplete.mock.calls[0]![0].format).toBe("dose-trace/1");
+    expect(onComplete.mock.calls[0]![0].format).toBe("dose-trace/2");
     act(() => result.current.reset());
     expect(result.current.history).toHaveLength(0);
     expect(result.current.item!.question.id).toBe(first);
+  });
+
+  it("reports the trace after every answer and resumes from it", () => {
+    const saved: unknown[] = [];
+    const first = renderHook(() =>
+      useDoseSession(engine, { length: 4, sides: "random", seed: 5, onAnswer: (t) => saved.push(t) }),
+    );
+    act(() => first.result.current.choose("left"));
+    act(() => first.result.current.choose("right"));
+    expect(saved).toHaveLength(2);
+    const pending = first.result.current.item!;
+
+    const onResumeError = vi.fn();
+    const again = renderHook(() =>
+      useDoseSession(engine, { length: 4, resume: saved.at(-1) as never, onResumeError }),
+    );
+    expect(onResumeError).not.toHaveBeenCalled();
+    expect(again.result.current.history.map((h) => h.choseA)).toEqual(
+      first.result.current.history.map((h) => h.choseA),
+    );
+    expect(again.result.current.item!.question.id).toBe(pending.question.id);
+    expect(again.result.current.item!.swapped).toBe(pending.swapped);
+  });
+
+  it("starts fresh when a stored trace can't be resumed", () => {
+    const onResumeError = vi.fn();
+    const bad = { ...new DoseSession(engine).trace(), design: "00000000000000" };
+    const { result } = renderHook(() => useDoseSession(engine, { resume: bad, onResumeError }));
+    expect(onResumeError).toHaveBeenCalledOnce();
+    expect(result.current.history).toHaveLength(0);
   });
 });
 
@@ -45,18 +75,47 @@ describe("ChoiceCard", () => {
   it("renders the model's option text and reports which option was picked", () => {
     const onAnswer = vi.fn();
     const { result } = renderHook(() => useDoseSession(engine, { length: 2 }));
-    render(<ChoiceCard item={result.current.item!} onAnswer={onAnswer} swap />);
-    const [left, right] = screen.getAllByRole("button");
+    const item = result.current.item!;
+    const view = render(<ChoiceCard item={item} onAnswer={onAnswer} swap minRtMs={0} />);
+    const [left] = screen.getAllByRole("button");
     expect(left!.dataset.side).toBe("B");
     fireEvent.click(left!);
-    fireEvent.click(right!);
+    view.rerender(<ChoiceCard item={{ ...item }} onAnswer={onAnswer} minRtMs={0} />);
+    fireEvent.click(screen.getAllByRole("button")[0]!);
     expect(onAnswer.mock.calls).toEqual([[false], [true]]);
+  });
+
+  it("takes one answer per question and none faster than minRtMs", () => {
+    vi.useFakeTimers();
+    try {
+      const onAnswer = vi.fn();
+      const { result } = renderHook(() => useDoseSession(engine, { length: 2 }));
+      render(<ChoiceCard item={result.current.item!} onAnswer={onAnswer} minRtMs={200} />);
+      const [left, right] = screen.getAllByRole("button");
+      fireEvent.click(left!);
+      expect(onAnswer).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(250);
+      fireEvent.click(left!);
+      fireEvent.click(right!);
+      fireEvent.keyDown(window, { key: "ArrowRight" });
+      expect(onAnswer.mock.calls).toEqual([[true]]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("follows item.swapped by default", () => {
+    const { result } = renderHook(() => useDoseSession(engine, { length: 2 }));
+    render(<ChoiceCard item={{ ...result.current.item!, swapped: true }} onAnswer={() => {}} />);
+    expect(screen.getAllByRole("button")[0]!.dataset.side).toBe("B");
   });
 
   it("answers from the keyboard", () => {
     const onAnswer = vi.fn();
     const { result } = renderHook(() => useDoseSession(engine, { length: 2 }));
-    render(<ChoiceCard item={result.current.item!} onAnswer={onAnswer} />);
+    render(<ChoiceCard item={result.current.item!} onAnswer={onAnswer} minRtMs={0} />);
+    fireEvent.keyDown(window, { key: "ArrowRight", repeat: true });
+    expect(onAnswer).not.toHaveBeenCalled();
     fireEvent.keyDown(window, { key: "ArrowRight" });
     expect(onAnswer).toHaveBeenCalledWith(false);
   });
@@ -64,7 +123,7 @@ describe("ChoiceCard", () => {
 
 describe("DoseModule", () => {
   it("runs a whole module and shows the completion message", () => {
-    render(<DoseModule engine={engine} length={2} completed="All done" />);
+    render(<DoseModule engine={engine} length={2} completed="All done" minRtMs={0} />);
     fireEvent.click(screen.getAllByRole("button")[0]!);
     fireEvent.click(screen.getAllByRole("button")[1]!);
     expect(screen.getByText("All done")).toBeTruthy();
