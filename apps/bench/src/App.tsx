@@ -1,12 +1,4 @@
-import {
-  Navigate,
-  NavLink,
-  Outlet,
-  useLocation,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from "react-router";
+import { NavLink, Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DEFAULT_MODULE, MODULES, getEngine, isModuleId, type ModuleId } from "@/lib/modules";
 import { cn } from "@/lib/utils";
@@ -17,14 +9,6 @@ const VIEWS = [
   { id: "recovery", label: "Recovery test", perModule: true },
   { id: "embed", label: "Embed", perModule: false },
 ] as const;
-
-/** Old links used #run, #compile, … on the root page. */
-export function LegacyHashRedirect({ fallback }: { fallback: string }) {
-  const { hash } = useLocation();
-  const view = VIEWS.find((v) => `#${v.id}` === hash);
-  const to = view ? (view.perModule ? `/${view.id}/${DEFAULT_MODULE}` : `/${view.id}`) : fallback;
-  return <Navigate to={to} replace />;
-}
 
 export function App() {
   const { module } = useParams();

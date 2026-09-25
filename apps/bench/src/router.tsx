@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate, useParams } from "react-router";
-import { App, LegacyHashRedirect } from "@/App";
+import { App } from "@/App";
 import { DEFAULT_MODULE, isModuleId, type ModuleId } from "@/lib/modules";
 import { CompileView } from "@/views/CompileView";
 import { EmbedView } from "@/views/EmbedView";
@@ -19,7 +19,7 @@ export const router = createBrowserRouter(
       path: "/",
       element: <App />,
       children: [
-        { index: true, element: <LegacyHashRedirect fallback={`/run/${DEFAULT_MODULE}`} /> },
+        { index: true, element: <Navigate to={`/run/${DEFAULT_MODULE}`} replace /> },
         {
           path: "run/:module?",
           element: <WithModule view="run" render={(id) => <RunPage key={id} moduleId={id} />} />,
@@ -37,6 +37,5 @@ export const router = createBrowserRouter(
       ],
     },
   ],
-  // Vite's base (e.g. /dose-bench/ on GitHub Pages) without the trailing slash.
   { basename: import.meta.env.BASE_URL.replace(/\/$/, "") || "/" },
 );
