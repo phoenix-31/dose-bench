@@ -29,14 +29,32 @@ no back-to-back top prize.
 Both formats are versioned by their `format` field and validated by `@dose-bench/compiler` (`validateTree`, `validateTrace`).
 A breaking change gets a new version tag; readers should reject tags they don't know.
 
-### `dose-trace/1`: one participant, one module
+### `dose-trace/2`: one participant, one module
 
 ```jsonc
 {
-  "format": "dose-trace/1",
+  "format": "dose-trace/2",
   "model": "risk-loss",
   "length": 10,
-  "answers": [{ "n": 1, "question": "G:10000:5000", "choseA": false, "rtMs": 2140, "gainBits": 0.601 }],
+  "engine": "0.1.0", // @dose-bench/engine version
+  "design": "1c9e0a4f27b3d8", // Engine.design: hash of model id, grids, question space and engine prior
+  "prior": "engine", // "custom" if the session was given its own prior
+  "sides": "random", // or "fixed" (option A always on the left)
+  "seed": 3141592653, // with sides = "random", reproduces which side each question was shown on
+  "startedAt": "2026-09-25T02:55:26.101Z",
+  "completedAt": null, // set on the last answer
+  "resumes": 1, // times the session was rebuilt from this trace, e.g. after a page reload
+  "answers": [
+    {
+      "n": 1,
+      "question": "G:10000:5000",
+      "choseA": false, // in the model's terms, whatever side A was on
+      "swapped": true, // option B was shown on the left
+      "rtMs": 2140,
+      "tMs": 2210, // ms from startedAt to this answer
+      "gainBits": 0.601,
+    },
+  ],
   "estimate": {
     "rho": { "mean": 0.94, "sd": 0.21 },
     "lambda": { "mean": 0.64, "sd": 0.28 },
@@ -46,6 +64,15 @@ A breaking change gets a new version tag; readers should reject tags they don't 
 ```
 
 `question` is the model's question id, so a trace can be re-fitted later under any model that contains the same ids (`fitTrace`).
+
+A trace is written after every answer, not just the last, so it doubles as the session's saved state:
+`DoseSession.resume(engine, trace)` replays the answers and continues. Selection is deterministic, so the replay asks the same
+questions; if it doesn't, or `design` differs from the engine's, `resume` throws rather than mix two designs in one record.
+`design` cannot see inside `probA`, so a change to a choice rule that keeps the grids and questions shows up only as that replay
+failure, or not at all if the change doesn't alter any selection. Bump the model id when you change its maths.
+
+`dose-trace/1` (engine 0.1) has the same `answers` without `swapped` and `tMs`, and none of the provenance fields. The validators
+and `fitTrace` still accept it.
 
 ### `dose-tree/1`: a compiled module
 

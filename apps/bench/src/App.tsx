@@ -1,33 +1,43 @@
-import { useEffect, useState } from "react";
+import {
+  Navigate,
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MODULES, getEngine, type ModuleId } from "@/lib/modules";
-import { CompileView } from "@/views/CompileView";
-import { EmbedView } from "@/views/EmbedView";
-import { RecoveryView } from "@/views/RecoveryView";
-import { RunLive } from "@/views/RunLive";
+import { DEFAULT_MODULE, MODULES, getEngine, isModuleId, type ModuleId } from "@/lib/modules";
+import { cn } from "@/lib/utils";
 
 const VIEWS = [
-  { id: "run", label: "Run live" },
-  { id: "compile", label: "Compile tree" },
-  { id: "recovery", label: "Recovery test" },
-  { id: "embed", label: "Embed" },
+  { id: "run", label: "Run live", perModule: true },
+  { id: "compile", label: "Compile tree", perModule: true },
+  { id: "recovery", label: "Recovery test", perModule: true },
+  { id: "embed", label: "Embed", perModule: false },
 ] as const;
-type View = (typeof VIEWS)[number]["id"];
 
-const initialView = (): View => {
-  const h = window.location.hash.slice(1);
-  return VIEWS.some((v) => v.id === h) ? (h as View) : "run";
-};
+/** Old links used #run, #compile, … on the root page. */
+export function LegacyHashRedirect({ fallback }: { fallback: string }) {
+  const { hash } = useLocation();
+  const view = VIEWS.find((v) => `#${v.id}` === hash);
+  const to = view ? (view.perModule ? `/${view.id}/${DEFAULT_MODULE}` : `/${view.id}`) : fallback;
+  return <Navigate to={to} replace />;
+}
 
 export function App() {
-  const [moduleId, setModuleId] = useState<ModuleId>("risk-loss");
-  const [view, setView] = useState<View>(initialView);
+  const { module } = useParams();
+  const { pathname } = useLocation();
+  const [search] = useSearchParams();
+  const navigate = useNavigate();
+  const moduleId: ModuleId = module && isModuleId(module) ? module : DEFAULT_MODULE;
+  const current = VIEWS.find((v) => pathname.startsWith(`/${v.id}`));
   const engine = getEngine(moduleId);
+  // Participant mode shows only what a participant would see.
+  const focus = current?.id === "run" && search.get("focus") === "1";
 
-  useEffect(() => {
-    history.replaceState(null, "", `#${view}`);
-  }, [view]);
+  if (focus) return <Outlet />;
 
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-5 px-4 py-6 sm:px-6">
@@ -54,47 +64,53 @@ export function App() {
             </p>
           </div>
         </div>
-        <Select value={moduleId} onValueChange={(v) => setModuleId(v as ModuleId)}>
-          <SelectTrigger className="w-48" aria-label="Module">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {MODULES.map((m) => (
-              <SelectItem key={m.id} value={m.id}>
-                {m.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {current?.perModule !== false && (
+          <Select value={moduleId} onValueChange={(v) => navigate(`/${current?.id ?? "run"}/${v}`)}>
+            <SelectTrigger className="w-48" aria-label="Module">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {MODULES.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </header>
 
-      <Tabs value={view} onValueChange={(v) => setView(v as View)}>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <TabsList>
-            {VIEWS.map((v) => (
-              <TabsTrigger key={v.id} value={v.id}>
-                {v.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <nav
+          aria-label="Views"
+          className="bg-muted text-muted-foreground inline-flex h-9 w-fit max-w-full items-center overflow-x-auto rounded-lg p-[3px]"
+        >
+          {VIEWS.map((v) => (
+            <NavLink
+              key={v.id}
+              to={v.perModule ? `/${v.id}/${moduleId}` : `/${v.id}`}
+              className={({ isActive }) =>
+                cn(
+                  "focus-visible:ring-ring/50 inline-flex h-[calc(100%-1px)] items-center rounded-md border border-transparent px-3 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-none",
+                  isActive && "bg-card text-foreground shadow-sm",
+                )
+              }
+            >
+              {v.label}
+            </NavLink>
+          ))}
+        </nav>
+        {current?.perModule !== false && (
           <span className="text-muted-foreground font-mono text-xs">
             {engine.nPoints.toLocaleString()} grid points · {engine.nQuestions} candidate questions · table
             built in {Math.round(engine.initMs)} ms
           </span>
-        </div>
-        <TabsContent value="run">
-          <RunLive key={moduleId} moduleId={moduleId} />
-        </TabsContent>
-        <TabsContent value="compile">
-          <CompileView key={moduleId} moduleId={moduleId} />
-        </TabsContent>
-        <TabsContent value="recovery">
-          <RecoveryView key={moduleId} moduleId={moduleId} />
-        </TabsContent>
-        <TabsContent value="embed">
-          <EmbedView />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
+
+      <main>
+        <Outlet />
+      </main>
 
       <footer className="text-muted-foreground max-w-3xl border-t pt-4 text-xs leading-relaxed">
         Implements the method of Chapman, Snowberg, Wang &amp; Camerer, "Dynamically Optimized Sequential

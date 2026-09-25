@@ -43,7 +43,7 @@ graph LR
 
 ```sh
 pnpm install
-pnpm dev             # DOSE Bench at http://localhost:5173
+pnpm dev             # DOSE Bench at http://localhost:5173/run/risk-loss
 pnpm test            # all packages
 pnpm dose recover risk-loss --n 400
 ```
@@ -54,12 +54,14 @@ Run a module in your own page:
 import { DoseSession, createEngine } from "@dose-bench/engine";
 import { riskLossModel } from "@dose-bench/models";
 
-const session = new DoseSession(createEngine(riskLossModel()), { length: 10 });
+const engine = createEngine(riskLossModel());
+const session = new DoseSession(engine, { length: 10, sides: "random" });
 
-const item = session.next(); // { question, text: { a, b }, gainBits, ... }
-session.answer(true); // participant chose option A
+const item = session.next(); // { question, text: { a, b }, swapped, gainBits, ... }
+session.answer(true); // participant chose option A (or session.choose("left"))
 session.estimate().params.lambda; // { mean, sd, median, ci90, marginal }
-session.trace(); // dose-trace/1 record for your data file
+const trace = session.trace(); // dose-trace/2 record: save it after every answer
+DoseSession.resume(engine, trace); // after a page reload, carry on from the same question
 ```
 
 Or in React:
@@ -68,7 +70,7 @@ Or in React:
 import { DoseModule } from "@dose-bench/react";
 import "@dose-bench/react/styles.css";
 
-<DoseModule engine={engine} length={10} onComplete={(trace) => save(trace)} />;
+<DoseModule engine={engine} length={10} onAnswer={saveDraft} onComplete={(trace) => save(trace)} />;
 ```
 
 ## How it compares
@@ -98,7 +100,7 @@ page; choosing each question takes 2–5 ms; compiling a full 10-question tree (
 | Panels that block custom JavaScript       | `dose compile … --out tree.json`, then display logic or `treeWalker`                                                                 |
 | Re-analysis                               | `fitTrace(model, trace)` or `dose fit <model> trace.json` re-estimates stored answers under any model that prices the same questions |
 
-Nothing here stores participant data. Your survey platform keeps the `dose-trace/1` records, which keeps the ethics and data-residency
+Nothing here stores participant data. Your survey platform keeps the `dose-trace/2` records, which keeps the ethics and data-residency
 story simple.
 
 ## Development

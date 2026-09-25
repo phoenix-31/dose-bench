@@ -9,40 +9,56 @@ import "@dose-bench/react/styles.css";
 const engine = createEngine(riskLossModel()); // build once per page
 
 export function RiskSection({ onDone }: { onDone: (trace: unknown) => void }) {
-  return <DoseModule engine={engine} length={10} onComplete={(trace) => onDone(trace)} />;
+  return (
+    <DoseModule
+      engine={engine}
+      length={10}
+      resume={loadDraft()}   // survives a page reload
+      onAnswer={saveDraft}   // dose-trace/2 after every answer
+      onComplete={(trace) => onDone(trace)}
+    />
+  );
 }`;
 
 const ESM = `import { DoseSession, createEngine } from "@dose-bench/engine";
 import { riskLossModel } from "@dose-bench/models";
 
-const session = new DoseSession(createEngine(riskLossModel()), { length: 10 });
+const engine = createEngine(riskLossModel());
+const saved = loadDraft();
+const session = saved
+  ? DoseSession.resume(engine, saved)      // page was reloaded: same questions, same sides
+  : new DoseSession(engine, { length: 10, sides: "random" });
 
 function show() {
   const item = session.next();            // most informative question, chosen on this device
-  if (!item) return save(session.trace()); // dose-trace/1 JSON
-  render(item.text.a, item.text.b);
+  if (!item) return save(session.trace()); // dose-trace/2 JSON
+  const [left, right] = item.swapped ? [item.text.b, item.text.a] : [item.text.a, item.text.b];
+  render(left, right);
 }
-function onChoice(choseA: boolean) {
-  session.answer(choseA);                  // Bayes update
+function onClick(position: "left" | "right") {
+  session.choose(position);                // Bayes update, in the model's terms
+  saveDraft(session.trace());
   show();
 }`;
 
 const QUALTRICS = `// Look & Feel → General → Header: <script src=".../dose.iife.js"></script>
-// Question JavaScript (two buttons with classes dose-a and dose-b in the question text):
+// Question JavaScript: the full template is integrations/qualtrics/template/question.js.
+// It adds reload recovery, double-click protection and per-parameter embedded data to this core:
 Qualtrics.SurveyEngine.addOnReady(function () {
   var q = this, box = q.getQuestionContainer();
-  var s = new DOSE.DoseSession(DOSE.createEngine(DOSE.riskLossModel()), { length: 10 });
+  var s = new DOSE.DoseSession(DOSE.createEngine(DOSE.presetById("time")), { length: 10, sides: "random" });
+  var left = box.querySelector(".dose-a"), right = box.querySelector(".dose-b");
   function show() {
     var item = s.next();
     if (!item) {
       Qualtrics.SurveyEngine.setEmbeddedData("dose_trace", JSON.stringify(s.trace()));
       return q.clickNextButton();
     }
-    box.querySelector(".dose-a").textContent = item.text.a;
-    box.querySelector(".dose-b").textContent = item.text.b;
+    left.textContent = item.swapped ? item.text.b : item.text.a;
+    right.textContent = item.swapped ? item.text.a : item.text.b;
   }
-  box.querySelector(".dose-a").onclick = function () { s.answer(true); show(); };
-  box.querySelector(".dose-b").onclick = function () { s.answer(false); show(); };
+  left.onclick = function () { s.choose("left"); show(); };
+  right.onclick = function () { s.choose("right"); show(); };
   q.hideNextButton();
   show();
 });`;
