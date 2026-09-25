@@ -24,7 +24,7 @@ This repo makes it runnable anywhere:
 | [`@dose-bench/react`](packages/react)              | `useDoseSession`, `DoseModule`, unstyled `ChoiceCard` with optional plain-CSS theme                                              |
 | [`@dose-bench/cli`](apps/cli)                      | `dose compile`, `dose recover`, `dose fit`, `dose validate`                                                                      |
 | [`apps/bench`](apps/bench)                         | The DOSE Bench web app (Vite, React 19, Tailwind v4, shadcn/ui)                                                                  |
-| [`integrations/qualtrics`](integrations/qualtrics) | 12 KB IIFE build (`window.DOSE`) and a copy-paste Qualtrics question                                                             |
+| [`integrations/qualtrics`](integrations/qualtrics) | 14 KB IIFE build (`window.DOSE`) and a copy-paste Qualtrics question                                                             |
 
 ```mermaid
 graph LR
