@@ -19,9 +19,13 @@ Qualtrics.SurveyEngine.addOnReady(function () {
   var prompt = box.querySelector(".dose-prompt");
   var engine = DOSE.createEngine(DOSE.presetById(MODULE));
 
-  // Survive a page reload: the trace so far is kept in this browser, keyed by response and module.
-  var KEY = "dose:" + "${e://Field/ResponseID}" + ":" + PREFIX + MODULE;
+  // Survive a page reload: the trace so far is kept in this browser, keyed by response and module. If the
+  // response ID isn't available (it pipes empty in some previews), don't persist at all: a shared key would
+  // let the next person on the same machine resume someone else's module.
+  var RESPONSE_ID = "${e://Field/ResponseID}";
+  var KEY = /^R_\w+$/.test(RESPONSE_ID) ? "dose:" + RESPONSE_ID + ":" + PREFIX + MODULE : null;
   function load() {
+    if (!KEY) return null;
     try {
       var raw = window.localStorage.getItem(KEY);
       return raw ? JSON.parse(raw) : null;
@@ -30,9 +34,9 @@ Qualtrics.SurveyEngine.addOnReady(function () {
     }
   }
   function store(trace) {
+    if (!KEY) return;
     try {
-      if (trace) window.localStorage.setItem(KEY, JSON.stringify(trace));
-      else window.localStorage.removeItem(KEY);
+      window.localStorage.setItem(KEY, JSON.stringify(trace));
     } catch (e) {}
   }
 
@@ -56,7 +60,6 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 
   function finish() {
     save(session.trace());
-    store(null);
     q.showNextButton();
     q.clickNextButton();
   }

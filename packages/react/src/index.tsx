@@ -19,7 +19,9 @@ export interface UseDoseSessionOptions<P extends string> {
   /**
    * A stored trace to continue from, e.g. one saved by `onAnswer` before a page reload. Used once, when the
    * hook mounts. If it can't be resumed (different model or design), a fresh session starts and
-   * `onResumeError` is called.
+   * `onResumeError` is called. If it is already complete, `onComplete` is called again after mount.
+   * Changing `engine`, `length`, `sides` or `seed` later starts a new participant and discards it, so keep
+   * them stable (or key the component on them).
    */
   readonly resume?: Trace | null;
   readonly onResumeError?: (error: unknown) => void;
@@ -63,17 +65,30 @@ export function useDoseSession<P extends string, Q extends Question>(
   );
   const callbacks = useRef(options);
   callbacks.current = options;
-  const [session, setSession] = useState(() => {
+  // Resume once, at mount. Callbacks are side effects, so they run in the effect below, not during render.
+  const [initial] = useState(() => {
     const saved = options.resume;
-    if (!saved) return make();
+    if (!saved) return { session: make(), error: undefined, resumed: false };
     try {
-      return DoseSession.resume(engine, saved);
-    } catch (e) {
-      options.onResumeError?.(e);
-      return make();
+      return { session: DoseSession.resume(engine, saved), error: undefined, resumed: true };
+    } catch (error) {
+      return { session: make(), error: error ?? new Error("resume failed"), resumed: false };
     }
   });
+  const [session, setSession] = useState(initial.session);
   const [, setVersion] = useState(0);
+
+  const reported = useRef(false); // StrictMode runs mount effects twice in development
+  useEffect(() => {
+    if (reported.current) return;
+    reported.current = true;
+    const { onResumeError, onComplete } = callbacks.current;
+    if (initial.error !== undefined) onResumeError?.(initial.error);
+    // A trace saved after the last answer resumes as a finished module: report completion again so the
+    // page can move on (the reload may have lost whatever the first onComplete did).
+    if (initial.resumed && initial.session.done)
+      onComplete?.(initial.session.trace(), initial.session.estimate());
+  }, [initial]);
 
   // A new engine or length means a new participant.
   const madeWith = useRef(make);
@@ -115,7 +130,7 @@ export function useDoseSession<P extends string, Q extends Question>(
     estimate: session.estimate(),
     history: session.history,
     done: session.done,
-    length,
+    length: session.length,
     reset,
     trace: () => session.trace(),
     session,
@@ -162,9 +177,11 @@ export function ChoiceCard<Q extends Question>({
   const content = (side: Side) =>
     renderOption ? renderOption(side, item.question) : side === "A" ? item.text?.a : item.text?.b;
 
-  // One answer per question, and none in the first `minRtMs`.
-  const guard = useRef({ item, shownAt: clock(), answered: false });
-  if (guard.current.item !== item) guard.current = { item, shownAt: clock(), answered: false };
+  // One answer per question, and none in the first `minRtMs`. Keyed by question and position rather than
+  // object identity, so a parent passing a fresh copy of the same item each render doesn't reset the clock.
+  const key = `${item.n}:${item.question.id}`;
+  const guard = useRef({ key, shownAt: clock(), answered: false });
+  if (guard.current.key !== key) guard.current = { key, shownAt: clock(), answered: false };
   const pick = useRef((_side: Side) => {});
   pick.current = (side: Side) => {
     const g = guard.current;

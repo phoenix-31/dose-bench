@@ -91,6 +91,7 @@ describe("createEngine", () => {
     expect(createEngine(fewer).design).not.toBe(engine.design);
     const tilted = Array.from({ length: engine.nPoints }, (_, k) => 1 + (k % 2));
     expect(createEngine(toy, { prior: tilted }).design).not.toBe(engine.design);
+    expect(createEngine({ ...toy, designKey: "strict" }).design).not.toBe(engine.design);
   });
 
   it("rejects duplicate question ids and bad priors", () => {
@@ -258,6 +259,31 @@ describe("DoseSession", () => {
     expect(b.answers.slice(0, 5).map((x) => x.rtMs)).toEqual(
       stored.answers.map((x: { rtMs: number }) => x.rtMs),
     );
+  });
+
+  it("never repeats a question once the question space runs out", () => {
+    const { allowed: _unconstrained, ...free } = toy;
+    const tiny = createEngine({ ...free, questions: toy.questions.slice(0, 3) });
+    const s = new DoseSession(tiny, { length: 5 });
+    const asked: string[] = [];
+    for (let i = 0; i < 5; i++) {
+      const item = s.next();
+      if (!item) break;
+      asked.push(item.question.id);
+      s.answer(true);
+    }
+    expect(asked).toHaveLength(3);
+    expect(new Set(asked).size).toBe(3);
+    expect(s.done).toBe(true);
+    expect(s.trace().completedAt).not.toBeNull();
+  });
+
+  it("ends when the design rules out every remaining question", () => {
+    const strict = createEngine({ ...toy, allowed: (_q, history) => history.length < 2 });
+    const s = new DoseSession(strict, { length: 10 });
+    while (!s.done) s.answer(true);
+    expect(s.history).toHaveLength(2);
+    expect(s.next()).toBeNull();
   });
 
   it("refuses to resume under a different design, model or prior", () => {

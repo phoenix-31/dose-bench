@@ -62,6 +62,19 @@ describe("useDoseSession", () => {
     expect(again.result.current.item!.swapped).toBe(pending.swapped);
   });
 
+  it("reports completion again when resuming a finished module, and uses the trace's length", () => {
+    const done = new DoseSession(engine, { length: 3 });
+    while (!done.done) done.answer(true);
+    const onComplete = vi.fn();
+    const { result } = renderHook(() =>
+      useDoseSession(engine, { length: 10, resume: done.trace(), onComplete }),
+    );
+    expect(onComplete).toHaveBeenCalledOnce();
+    expect(onComplete.mock.calls[0]![0].answers).toHaveLength(3);
+    expect(result.current.length).toBe(3);
+    expect(result.current.item).toBeNull();
+  });
+
   it("starts fresh when a stored trace can't be resumed", () => {
     const onResumeError = vi.fn();
     const bad = { ...new DoseSession(engine).trace(), design: "00000000000000" };
@@ -80,9 +93,21 @@ describe("ChoiceCard", () => {
     const [left] = screen.getAllByRole("button");
     expect(left!.dataset.side).toBe("B");
     fireEvent.click(left!);
-    view.rerender(<ChoiceCard item={{ ...item }} onAnswer={onAnswer} minRtMs={0} />);
+    act(() => result.current.answer(false));
+    view.rerender(<ChoiceCard item={result.current.item!} onAnswer={onAnswer} minRtMs={0} />);
     fireEvent.click(screen.getAllByRole("button")[0]!);
     expect(onAnswer.mock.calls).toEqual([[false], [true]]);
+  });
+
+  it("keeps its guard when the parent passes a fresh copy of the same item", () => {
+    const onAnswer = vi.fn();
+    const { result } = renderHook(() => useDoseSession(engine, { length: 2 }));
+    const item = result.current.item!;
+    const view = render(<ChoiceCard item={item} onAnswer={onAnswer} minRtMs={0} />);
+    fireEvent.click(screen.getAllByRole("button")[0]!);
+    view.rerender(<ChoiceCard item={{ ...item }} onAnswer={onAnswer} minRtMs={0} />);
+    fireEvent.click(screen.getAllByRole("button")[0]!);
+    expect(onAnswer).toHaveBeenCalledOnce();
   });
 
   it("takes one answer per question and none faster than minRtMs", () => {

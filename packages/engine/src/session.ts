@@ -136,6 +136,8 @@ export class DoseSession<P extends string = string, Q extends Question = Questio
   #startedAt = Date.now();
   #completedAt: number | null = null;
   #resumes = 0;
+  /** History length at which selection last found nothing eligible (-1: not known to be exhausted). */
+  #noneLeftAt = -1;
 
   constructor(engine: Engine<P, Q>, options: SessionOptions = {}) {
     this.engine = engine;
@@ -207,18 +209,21 @@ export class DoseSession<P extends string = string, Q extends Question = Questio
     return s;
   }
 
+  /** True once `length` questions are answered or no eligible question is left. */
   get done(): boolean {
-    return this.#history.length >= this.length || (this.#pending === null && this.#exhausted());
+    if (this.#history.length >= this.length) return true;
+    if (this.#pending) return false;
+    if (this.#noneLeftAt !== this.#history.length) {
+      const { index } = selectQuestion(this.engine, this.#posterior, this.#history);
+      this.#noneLeftAt = index < 0 ? this.#history.length : -1;
+    }
+    return this.#noneLeftAt === this.#history.length;
   }
   get history(): readonly SessionEntry<Q>[] {
     return this.#history;
   }
   get posterior(): Posterior {
     return this.#posterior;
-  }
-
-  #exhausted(): boolean {
-    return this.#history.length >= this.engine.nQuestions;
   }
 
   /** Deterministic in (seed, n), so a resumed session shows each question on the same side. */
@@ -252,7 +257,8 @@ export class DoseSession<P extends string = string, Q extends Question = Questio
   answer(choseA: boolean): Summary<P> {
     this.next();
     if (!this.#pending) throw new Error("DoseSession: module is complete");
-    return this.#record(choseA, now() - this.#pending.shownAt, Date.now() - this.#startedAt);
+    // Clamped: a clock set backwards between a save and a resume must not produce negative times.
+    return this.#record(choseA, now() - this.#pending.shownAt, Math.max(0, Date.now() - this.#startedAt));
   }
 
   /** Record a choice by screen position, accounting for `swapped`. */

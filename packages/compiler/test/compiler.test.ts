@@ -114,7 +114,18 @@ describe("validateTrace", () => {
     };
     expect(errors({ ...tr, answers: [{ ...tr.answers[0]!, n: 2 }] }).join()).toMatch(/n = 2/);
     expect(errors({ ...tr, answers: [{ ...tr.answers[0]!, swapped: true }] }).join()).toMatch(/fixed-sides/);
-    expect(errors({ ...tr, completedAt: new Date().toISOString() }).join()).toMatch(/incomplete/);
+    s.answer(false);
+    expect(errors({ ...s.trace(), completedAt: null }).join()).toMatch(/without completedAt/);
     expect(errors({ ...tr, format: "dose-trace/9" })).not.toHaveLength(0);
+  });
+
+  it("accepts a module that ended early because no eligible question was left", () => {
+    const tiny = createEngine({ ...riskLossModel(), questions: riskLossModel().questions.slice(0, 3) });
+    const s = new DoseSession(tiny, { length: 5 });
+    while (!s.done) s.answer(true);
+    const tr = s.trace();
+    expect(tr.answers.length).toBeLessThan(5);
+    expect(tr.completedAt).not.toBeNull();
+    expect(validateTrace(tr).ok).toBe(true);
   });
 });

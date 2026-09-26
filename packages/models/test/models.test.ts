@@ -114,3 +114,13 @@ describe("presets", () => {
     expect(s.estimate().params.lambda.mean).toBeLessThan(1);
   });
 });
+
+describe("design fingerprints", () => {
+  it("differ when preset options change the constraints or a fixed parameter", () => {
+    const base = createEngine(riskLossModel()).design;
+    expect(createEngine(riskLossModel({ firstGainOnly: 0 })).design).not.toBe(base);
+    expect(createEngine(riskLossModel({ noConsecutiveMaxPrize: false })).design).not.toBe(base);
+    expect(createEngine(riskLossModel()).design).toBe(base);
+    expect(createEngine(timeModel({ rho: 0.8 })).design).not.toBe(createEngine(timeModel()).design);
+  });
+});

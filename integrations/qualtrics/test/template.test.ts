@@ -28,8 +28,15 @@ function memoryStorage() {
   };
 }
 
-/** Load the question once, like Qualtrics does on page load. `module` edits the MODULE setting. */
-function mountQuestion(storage: ReturnType<typeof memoryStorage>, module = "risk-loss") {
+/**
+ * Load the question once, like Qualtrics does on page load. `module` edits the MODULE setting; `responseId`
+ * is what Qualtrics pipes into ${e://Field/ResponseID} (empty in some previews).
+ */
+function mountQuestion(
+  storage: ReturnType<typeof memoryStorage>,
+  module = "risk-loss",
+  responseId = "R_1a2B3c",
+) {
   const els = {
     ".dose-a": new El(),
     ".dose-b": new El(),
@@ -50,7 +57,9 @@ function mountQuestion(storage: ReturnType<typeof memoryStorage>, module = "risk
       setEmbeddedData: (k: string, v: unknown) => void (embedded[k] = v),
     },
   };
-  const code = source.replace('var MODULE = "risk-loss"', `var MODULE = ${JSON.stringify(module)}`);
+  const code = source
+    .replace('var MODULE = "risk-loss"', `var MODULE = ${JSON.stringify(module)}`)
+    .replace("${e://Field/ResponseID}", responseId);
   new Function("Qualtrics", "DOSE", "window", code)(Qualtrics, DOSE, { localStorage: storage });
   const trace = () => JSON.parse(embedded.dose_trace as string) as Trace;
   return {
@@ -84,7 +93,28 @@ describe("Qualtrics question template", () => {
     expect(tr.answers).toHaveLength(10);
     expect(tr.completedAt).not.toBeNull();
     for (const p of ["rho", "lambda", "mu"]) expect(q.embedded[`dose_${p}`]).toBe(tr.estimate[p]!.mean);
+  });
+
+  it("returning to a finished module (Back button) re-saves the original data instead of starting over", () => {
+    const storage = memoryStorage();
+    const first = mountQuestion(storage);
+    for (let i = 0; i < 10; i++) {
+      wait();
+      first.left.click();
+    }
+    const again = mountQuestion(storage);
+    expect(again.advanced()).toBe(true);
+    expect(again.trace().answers).toEqual(first.trace().answers);
+    expect(again.trace().estimate).toEqual(first.trace().estimate);
+  });
+
+  it("doesn't persist anything when the response ID is missing", () => {
+    const storage = memoryStorage();
+    const q = mountQuestion(storage, "risk-loss", "");
+    wait();
+    q.left.click();
     expect(storage.size).toBe(0);
+    expect(mountQuestion(storage, "risk-loss", "").count.textContent).toBe("Question 1 of 10");
   });
 
   it("ignores double clicks", () => {

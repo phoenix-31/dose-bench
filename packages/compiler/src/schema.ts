@@ -139,13 +139,9 @@ export const traceV2Schema = z
           path: ["answers", i],
         });
     });
-    if ((t.completedAt === null) === (t.answers.length === t.length))
-      ctx.addIssue({
-        code: "custom",
-        message:
-          t.completedAt === null ? "complete trace without completedAt" : "incomplete trace with completedAt",
-        path: ["completedAt"],
-      });
+    // A module can also end early when no eligible question is left, so completedAt with fewer answers is fine.
+    if (t.completedAt === null && t.answers.length === t.length)
+      ctx.addIssue({ code: "custom", message: "complete trace without completedAt", path: ["completedAt"] });
   });
 
 /** Any supported trace format. */

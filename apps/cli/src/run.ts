@@ -144,6 +144,8 @@ export async function run(argv: readonly string[], io: Io): Promise<number> {
         if (!id || !file) throw new UsageError("fit needs a model id and a trace file");
         const v = validateTrace(JSON.parse(await io.readFile(file)));
         if (!v.ok) throw new UsageError(`not a valid dose-trace file:\n  ${v.errors.join("\n  ")}`);
+        if (v.value.format === "dose-trace/2" && v.value.prior === "custom")
+          io.err("dose: note: this trace used a custom prior; re-fitting under the model's default prior.\n");
         const fit = fitTrace(presetById(id), v.value);
         for (const [name, s] of Object.entries(fit.summary.params)) {
           io.out(

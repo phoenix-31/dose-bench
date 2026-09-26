@@ -117,6 +117,7 @@ export function timeModel(
   const m: Model<TimeParam, TimeQuestion> = {
     ...base,
     id: "time",
+    designKey: JSON.stringify({ rho: fixedRho }),
     params,
     probA: (t, q) =>
       logistic(t.mu * (value(t, fixedRho, q.early, q.tEarly) - value(t, fixedRho, q.late, q.tLate))),
