@@ -1,6 +1,6 @@
-export type { Answer, Model, OptionText, ParamSpec, ParamsOf, Question, QuestionOf, Theta } from "./types.js";
-export { binaryEntropy, clampProb, hash53, linspace, logistic, mulberry32, type Rng } from "./math.js";
-export { makeGrid, thetaAt, type Grid } from "./grid.js";
+export type { Answer, Model, OptionText, ParamSpec, ParamsOf, Question, QuestionOf, Theta } from "./types.js"
+export { binaryEntropy, clampProb, hash53, linspace, logistic, mulberry32, type Rng } from "./math.js"
+export { makeGrid, thetaAt, type Grid } from "./grid.js"
 export {
   createEngine,
   eligible,
@@ -17,7 +17,7 @@ export {
   type Posterior,
   type Selection,
   type Summary,
-} from "./engine.js";
+} from "./engine.js"
 export {
   DoseSession,
   type AnyTrace,
@@ -29,6 +29,6 @@ export {
   type Trace,
   type TraceAnswer,
   type TraceV1,
-} from "./session.js";
-export { VERSION } from "./version.js";
-export { fitAnswers, fitTrace, type Fit } from "./fit.js";
+} from "./session.js"
+export { VERSION } from "./version.js"
+export { fitAnswers, fitTrace, type Fit } from "./fit.js"

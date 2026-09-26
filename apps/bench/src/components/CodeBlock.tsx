@@ -1,34 +1,34 @@
-import { Check, Copy } from "lucide-react";
-import { useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Check, Copy } from "lucide-react"
+import { useRef, useState } from "react"
+import { Button } from "@/components/ui/button"
 
 export function CodeBlock({
   text,
   copyText,
   label = "Copy",
 }: {
-  text: string;
-  copyText?: string;
-  label?: string;
+  text: string
+  copyText?: string
+  label?: string
 }) {
-  const [state, setState] = useState<"idle" | "copied" | "selected">("idle");
-  const pre = useRef<HTMLPreElement>(null);
+  const [state, setState] = useState<"idle" | "copied" | "selected">("idle")
+  const pre = useRef<HTMLPreElement>(null)
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(copyText ?? text);
-      setState("copied");
+      await navigator.clipboard.writeText(copyText ?? text)
+      setState("copied")
     } catch {
-      const sel = window.getSelection();
+      const sel = window.getSelection()
       if (pre.current && sel) {
-        const r = document.createRange();
-        r.selectNodeContents(pre.current);
-        sel.removeAllRanges();
-        sel.addRange(r);
+        const r = document.createRange()
+        r.selectNodeContents(pre.current)
+        sel.removeAllRanges()
+        sel.addRange(r)
       }
-      setState("selected");
+      setState("selected")
     }
-    setTimeout(() => setState("idle"), 1800);
-  };
+    setTimeout(() => setState("idle"), 1800)
+  }
   return (
     <div className="relative">
       <Button variant="outline" size="sm" className="absolute top-2 right-2" onClick={copy}>
@@ -42,5 +42,5 @@ export function CodeBlock({
         <code>{text}</code>
       </pre>
     </div>
-  );
+  )
 }

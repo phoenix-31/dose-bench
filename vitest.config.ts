@@ -1,5 +1,5 @@
-import { defineConfig } from "vitest/config";
-import { sourceResolve } from "./vitest.shared";
+import { defineConfig } from "vitest/config"
+import { sourceResolve } from "./vitest.shared"
 
 export default defineConfig({
   ...sourceResolve,
@@ -7,4 +7,4 @@ export default defineConfig({
     projects: ["packages/*", "apps/cli", "integrations/qualtrics"],
     passWithNoTests: true,
   },
-});
+})

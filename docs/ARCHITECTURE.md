@@ -100,11 +100,11 @@ questions a live `DoseSession` asks for the same answers.
 ## Adding a model
 
 ```ts
-import { linspace, logistic, type Model, type Question } from "@dose-bench/engine";
+import { linspace, logistic, type Model, type Question } from "@dose-bench/engine"
 
 interface WtpQuestion extends Question {
-  readonly kind: "wtp";
-  readonly price: number;
+  readonly kind: "wtp"
+  readonly price: number
 }
 
 export const wtpModel: Model<"wtp" | "mu", WtpQuestion> = {
@@ -117,7 +117,7 @@ export const wtpModel: Model<"wtp" | "mu", WtpQuestion> = {
   questions: linspace(5, 195, 39).map((price) => ({ id: `P:${price}`, kind: "wtp" as const, price })),
   probA: (t, q) => logistic(t.mu * (t.wtp - q.price)), // A = "buy at this price"
   describe: (q) => ({ a: `Buy for $${q.price}`, b: "Don't buy" }),
-};
+}
 ```
 
 Checklist:

@@ -1,37 +1,37 @@
-import type { Accuracy } from "@dose-bench/sim";
-import { useState } from "react";
-import { param } from "@/lib/modules";
-import { fmtTick, niceMax, ticks } from "./scale";
+import type { Accuracy } from "@dose-bench/sim"
+import { useState } from "react"
+import { param } from "@/lib/modules"
+import { fmtTick, niceMax, ticks } from "./scale"
 
 interface Props {
-  readonly name: string;
-  readonly dose: readonly Accuracy[];
-  readonly random: readonly Accuracy[];
+  readonly name: string
+  readonly dose: readonly Accuracy[]
+  readonly random: readonly Accuracy[]
   /** Price-list baseline: one value, drawn as a dashed reference line. */
-  readonly mpl?: Accuracy | undefined;
+  readonly mpl?: Accuracy | undefined
 }
 
-const W = 320;
-const H = 190;
-const M = { l: 42, r: 12, t: 12, b: 32 };
+const W = 320
+const H = 190
+const M = { l: 42, r: 12, t: 12, b: 32 }
 
 /** Mean absolute error by questions answered, DOSE vs random order (and MPL reference). */
 export function RecoveryChart({ name, dose, random, mpl }: Props) {
-  const len = dose.length;
-  const values = [...dose, ...random].map((a) => a.mae).concat(mpl ? [mpl.mae] : []);
-  const ymax = niceMax(Math.max(...values));
-  const sx = (i: number) => M.l + (len > 1 ? (i / (len - 1)) * (W - M.l - M.r) : 0);
-  const sy = (v: number) => H - M.b - (v / ymax) * (H - M.t - M.b);
+  const len = dose.length
+  const values = [...dose, ...random].map((a) => a.mae).concat(mpl ? [mpl.mae] : [])
+  const ymax = niceMax(Math.max(...values))
+  const sx = (i: number) => M.l + (len > 1 ? (i / (len - 1)) * (W - M.l - M.r) : 0)
+  const sy = (v: number) => H - M.b - (v / ymax) * (H - M.t - M.b)
   const path = (a: readonly Accuracy[]) =>
-    a.map((v, i) => `${i ? "L" : "M"}${sx(i).toFixed(1)} ${sy(v.mae).toFixed(1)}`).join(" ");
-  const [hi, setHi] = useState<number | null>(null);
-  const meta = param(name);
+    a.map((v, i) => `${i ? "L" : "M"}${sx(i).toFixed(1)} ${sy(v.mae).toFixed(1)}`).join(" ")
+  const [hi, setHi] = useState<number | null>(null)
+  const meta = param(name)
 
   const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    const i = Math.round(((((e.clientX - r.left) / r.width) * W - M.l) / (W - M.l - M.r)) * (len - 1));
-    setHi(i >= 0 && i < len ? i : null);
-  };
+    const r = e.currentTarget.getBoundingClientRect()
+    const i = Math.round(((((e.clientX - r.left) / r.width) * W - M.l) / (W - M.l - M.r)) * (len - 1))
+    setHi(i >= 0 && i < len ? i : null)
+  }
 
   return (
     <figure className="flex min-w-0 flex-col gap-2">
@@ -145,5 +145,5 @@ export function RecoveryChart({ name, dose, random, mpl }: Props) {
         )}
       </div>
     </figure>
-  );
+  )
 }

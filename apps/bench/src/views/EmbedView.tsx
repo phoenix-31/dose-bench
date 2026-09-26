@@ -1,5 +1,5 @@
-import { CodeBlock } from "@/components/CodeBlock";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CodeBlock } from "@/components/CodeBlock"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const REACT = `import { createEngine } from "@dose-bench/engine";
 import { riskLossModel } from "@dose-bench/models";
@@ -18,7 +18,7 @@ export function RiskSection({ onDone }: { onDone: (trace: unknown) => void }) {
       onComplete={(trace) => onDone(trace)}
     />
   );
-}`;
+}`
 
 const ESM = `import { DoseSession, createEngine } from "@dose-bench/engine";
 import { riskLossModel } from "@dose-bench/models";
@@ -39,7 +39,7 @@ function onClick(position: "left" | "right") {
   session.choose(position);                // Bayes update, in the model's terms
   saveDraft(session.trace());
   show();
-}`;
+}`
 
 const QUALTRICS = `// Look & Feel → General → Header: <script src=".../dose.iife.js"></script>
 // Question JavaScript: the full template is integrations/qualtrics/template/question.js.
@@ -61,7 +61,7 @@ Qualtrics.SurveyEngine.addOnReady(function () {
   right.onclick = function () { s.choose("right"); show(); };
   q.hideNextButton();
   show();
-});`;
+});`
 
 const TREE = `# Locked-down panel? Compile ahead of time, ship JSON, walk it anywhere.
 npx @dose-bench/cli compile risk-loss --length 10 --out risk-loss-10.json
@@ -70,7 +70,7 @@ import { treeWalker } from "@dose-bench/compiler";
 const w = treeWalker(tree);
 w.question;      // { kind: "gain", win: 10000, lose: 0, sure: 5000, ... }
 w.answer(true);  // follow branch A
-w.estimate;      // at a leaf: { rho: [mean, sd], lambda: [...], mu: [...] }`;
+w.estimate;      // at a leaf: { rho: [mean, sd], lambda: [...], mu: [...] }`
 
 export function EmbedView() {
   return (
@@ -115,5 +115,5 @@ export function EmbedView() {
         ))}
       </div>
     </div>
-  );
+  )
 }

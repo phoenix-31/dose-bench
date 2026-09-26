@@ -1,4 +1,4 @@
-import { defineConfig } from "tsup";
+import { defineConfig } from "tsup"
 
 export default defineConfig({
   entry: ["src/index.tsx"],
@@ -8,4 +8,4 @@ export default defineConfig({
   clean: true,
   target: "es2020",
   external: ["react"],
-});
+})

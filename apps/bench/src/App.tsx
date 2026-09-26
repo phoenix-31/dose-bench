@@ -1,25 +1,25 @@
-import { NavLink, Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DEFAULT_MODULE, MODULES, getEngine, isModuleId, type ModuleId } from "@/lib/modules";
-import { cn } from "@/lib/utils";
+import { NavLink, Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DEFAULT_MODULE, MODULES, getEngine, isModuleId, type ModuleId } from "@/lib/modules"
+import { cn } from "@/lib/utils"
 
 const VIEWS = [
   { id: "run", label: "Run live", perModule: true },
   { id: "compile", label: "Compile tree", perModule: true },
   { id: "recovery", label: "Recovery test", perModule: true },
   { id: "embed", label: "Embed", perModule: false },
-] as const;
+] as const
 
 export function App() {
-  const { module } = useParams();
-  const { pathname } = useLocation();
-  const [search] = useSearchParams();
-  const navigate = useNavigate();
-  const moduleId: ModuleId = module && isModuleId(module) ? module : DEFAULT_MODULE;
-  const current = VIEWS.find((v) => pathname.startsWith(`/${v.id}`));
-  const engine = getEngine(moduleId);
+  const { module } = useParams()
+  const { pathname } = useLocation()
+  const [search] = useSearchParams()
+  const navigate = useNavigate()
+  const moduleId: ModuleId = module && isModuleId(module) ? module : DEFAULT_MODULE
+  const current = VIEWS.find((v) => pathname.startsWith(`/${v.id}`))
+  const engine = getEngine(moduleId)
   // Participant mode shows only what a participant would see.
-  const focus = current?.id === "run" && search.get("focus") === "1";
+  const focus = current?.id === "run" && search.get("focus") === "1"
 
   // The Outlet stays at the same place in the tree in both modes, so toggling participant mode doesn't
   // remount the run page (and its session).
@@ -109,5 +109,5 @@ export function App() {
         </footer>
       )}
     </div>
-  );
+  )
 }

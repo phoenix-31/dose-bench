@@ -1,16 +1,16 @@
-import { createBrowserRouter, Navigate, useParams } from "react-router";
-import { App } from "@/App";
-import { DEFAULT_MODULE, isModuleId, type ModuleId } from "@/lib/modules";
-import { CompileView } from "@/views/CompileView";
-import { EmbedView } from "@/views/EmbedView";
-import { RecoveryView } from "@/views/RecoveryView";
-import { RunPage } from "@/views/RunPage";
+import { createBrowserRouter, Navigate, useParams } from "react-router"
+import { App } from "@/App"
+import { DEFAULT_MODULE, isModuleId, type ModuleId } from "@/lib/modules"
+import { CompileView } from "@/views/CompileView"
+import { EmbedView } from "@/views/EmbedView"
+import { RecoveryView } from "@/views/RecoveryView"
+import { RunPage } from "@/views/RunPage"
 
 /** Renders a per-module view, or sends an unknown module id to the default one. */
 function WithModule({ view, render }: { view: string; render: (id: ModuleId) => React.ReactNode }) {
-  const { module } = useParams();
-  if (!module || !isModuleId(module)) return <Navigate to={`/${view}/${DEFAULT_MODULE}`} replace />;
-  return render(module);
+  const { module } = useParams()
+  if (!module || !isModuleId(module)) return <Navigate to={`/${view}/${DEFAULT_MODULE}`} replace />
+  return render(module)
 }
 
 export const router = createBrowserRouter(
@@ -38,4 +38,4 @@ export const router = createBrowserRouter(
     },
   ],
   { basename: import.meta.env.BASE_URL.replace(/\/$/, "") || "/" },
-);
+)

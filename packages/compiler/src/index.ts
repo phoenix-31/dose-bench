@@ -8,7 +8,7 @@ export {
   type Tree,
   type TreeNode,
   type TreeWalker,
-} from "./tree.js";
+} from "./tree.js"
 export {
   traceSchema,
   traceV1Schema,
@@ -17,4 +17,4 @@ export {
   validateTrace,
   validateTree,
   type ValidationResult,
-} from "./schema.js";
+} from "./schema.js"

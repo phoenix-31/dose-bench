@@ -1,8 +1,8 @@
-import type { Question } from "@dose-bench/engine";
-import type { RiskQuestion, TimeQuestion } from "@dose-bench/models";
-import type { Side } from "@dose-bench/react";
+import type { Question } from "@dose-bench/engine"
+import type { RiskQuestion, TimeQuestion } from "@dose-bench/models"
+import type { Side } from "@dose-bench/react"
 
-const pts = (x: number) => x.toLocaleString("en-US");
+const pts = (x: number) => x.toLocaleString("en-US")
 
 function Amount({ value, caption }: { value: number; caption: string }) {
   return (
@@ -13,19 +13,19 @@ function Amount({ value, caption }: { value: number; caption: string }) {
       <span className="text-muted-foreground text-sm">points</span>
       <span className="text-foreground/80 mt-1.5 text-sm">{caption}</span>
     </span>
-  );
+  )
 }
 
 /** Visual option content for the bundled presets; falls back to nothing for unknown question kinds. */
 export function OptionBody({ side, question }: { side: Side; question: Question }) {
   if (question.kind === "time") {
-    const q = question as TimeQuestion;
-    const [amt, d] = side === "A" ? [q.early, q.tEarly] : [q.late, q.tLate];
-    return <Amount value={amt} caption={d === 0 ? "today" : `in ${d} days`} />;
+    const q = question as TimeQuestion
+    const [amt, d] = side === "A" ? [q.early, q.tEarly] : [q.late, q.tLate]
+    return <Amount value={amt} caption={d === 0 ? "today" : `in ${d} days`} />
   }
-  const q = question as RiskQuestion;
-  if (side === "B") return <Amount value={q.sure} caption="for sure" />;
-  const mixed = q.kind === "mixed";
+  const q = question as RiskQuestion
+  if (side === "B") return <Amount value={q.sure} caption="for sure" />
+  const mixed = q.kind === "mixed"
   return (
     <span className="flex w-full flex-col gap-2">
       <span className="grid grid-cols-2 overflow-hidden rounded-lg border">
@@ -47,5 +47,5 @@ export function OptionBody({ side, question }: { side: Side; question: Question 
       </span>
       <span className="text-foreground/80 text-sm">a coin flip{mixed ? ", can lose points" : ""}</span>
     </span>
-  );
+  )
 }

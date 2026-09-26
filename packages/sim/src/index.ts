@@ -1,5 +1,5 @@
-export { accuracy, mean, spearman, type Accuracy } from "./stats.js";
-export { simulateDoubleMpl, type DoubleMplOptions, type MplEstimate } from "./mpl.js";
+export { accuracy, mean, spearman, type Accuracy } from "./stats.js"
+export { simulateDoubleMpl, type DoubleMplOptions, type MplEstimate } from "./mpl.js"
 export {
   defaultDraw,
   recovery,
@@ -8,4 +8,4 @@ export {
   type Policy,
   type RecoveryOptions,
   type RecoveryResult,
-} from "./recovery.js";
+} from "./recovery.js"

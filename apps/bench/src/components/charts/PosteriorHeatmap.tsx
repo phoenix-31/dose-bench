@@ -1,38 +1,38 @@
-import type { JointMarginal, Summary } from "@dose-bench/engine";
-import { useState } from "react";
-import { param } from "@/lib/modules";
-import { fmtTick, ticks } from "./scale";
+import type { JointMarginal, Summary } from "@dose-bench/engine"
+import { useState } from "react"
+import { param } from "@/lib/modules"
+import { fmtTick, ticks } from "./scale"
 
 interface Props {
-  readonly joint: JointMarginal;
-  readonly x: string;
-  readonly y: string;
-  readonly estimate: Summary;
-  readonly truth?: Readonly<Record<string, number>> | undefined;
+  readonly joint: JointMarginal
+  readonly x: string
+  readonly y: string
+  readonly estimate: Summary
+  readonly truth?: Readonly<Record<string, number>> | undefined
 }
 
-const W = 440;
-const H = 300;
-const M = { l: 46, r: 10, t: 10, b: 38 };
+const W = 440
+const H = 300
+const M = { l: 46, r: 10, t: 10, b: 38 }
 
 /** Posterior over two parameters, others summed out. Cells shade from --seq-lo to --seq-hi. */
 export function PosteriorHeatmap({ joint, x, y, estimate, truth }: Props) {
-  const { x: xs, y: ys, m } = joint;
-  const cw = (W - M.l - M.r) / xs.length;
-  const ch = (H - M.t - M.b) / ys.length;
-  const max = Math.max(...m.flat(), 1e-12);
-  const [hover, setHover] = useState<{ i: number; j: number; v: number } | null>(null);
+  const { x: xs, y: ys, m } = joint
+  const cw = (W - M.l - M.r) / xs.length
+  const ch = (H - M.t - M.b) / ys.length
+  const max = Math.max(...m.flat(), 1e-12)
+  const [hover, setHover] = useState<{ i: number; j: number; v: number } | null>(null)
 
   const x0 = xs[0]!,
     x1 = xs[xs.length - 1]!,
     y0 = ys[0]!,
-    y1 = ys[ys.length - 1]!;
-  const sx = (v: number) => M.l + cw / 2 + ((v - x0) / (x1 - x0)) * (W - M.l - M.r - cw);
-  const sy = (v: number) => H - M.b - ch / 2 - ((v - y0) / (y1 - y0)) * (H - M.t - M.b - ch);
+    y1 = ys[ys.length - 1]!
+  const sx = (v: number) => M.l + cw / 2 + ((v - x0) / (x1 - x0)) * (W - M.l - M.r - cw)
+  const sy = (v: number) => H - M.b - ch / 2 - ((v - y0) / (y1 - y0)) * (H - M.t - M.b - ch)
   const px = param(x),
-    py = param(y);
+    py = param(y)
   const ex = estimate.params[x]!.mean,
-    ey = estimate.params[y]!.mean;
+    ey = estimate.params[y]!.mean
 
   return (
     <figure className="flex flex-col gap-2">
@@ -146,5 +146,5 @@ export function PosteriorHeatmap({ joint, x, y, estimate, truth }: Props) {
         )}
       </div>
     </figure>
-  );
+  )
 }

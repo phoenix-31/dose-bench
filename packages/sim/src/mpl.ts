@@ -1,5 +1,5 @@
-import { logistic, type Rng, type Theta } from "@dose-bench/engine";
-import { POINTS_PER_DOLLAR, ptValue, type RiskParam } from "@dose-bench/models";
+import { logistic, type Rng, type Theta } from "@dose-bench/engine"
+import { POINTS_PER_DOLLAR, ptValue, type RiskParam } from "@dose-bench/models"
 
 /**
  * The double multiple price list the paper benchmarks DOSE against (Andersen et al. 2008 style).
@@ -13,23 +13,23 @@ import { POINTS_PER_DOLLAR, ptValue, type RiskParam } from "@dose-bench/models";
  * stochastically dominated choice cannot be converted to lambda and are counted as failures.
  */
 export interface DoubleMplOptions {
-  readonly prize?: number;
-  readonly riskRows?: readonly number[];
-  readonly lossRows?: readonly number[];
-  readonly rhoRange?: readonly [number, number];
-  readonly lambdaRange?: readonly [number, number];
+  readonly prize?: number
+  readonly riskRows?: readonly number[]
+  readonly lossRows?: readonly number[]
+  readonly rhoRange?: readonly [number, number]
+  readonly lambdaRange?: readonly [number, number]
 }
 
 export interface MplEstimate {
-  readonly rho: number;
+  readonly rho: number
   /** null when MPL 2's answers cannot be reconciled with MPL 1 (FOSD violation). */
-  readonly lambda: number | null;
+  readonly lambda: number | null
 }
 
-const DEFAULT_RISK_ROWS = [500, 1500, 2500, 3500, 4500, 5500, 6500, 7500, 8500, 9500];
-const DEFAULT_LOSS_ROWS = [-4500, -3500, -2500, -1500, -500, 500, 1500, 2500, 3500, 4500];
+const DEFAULT_RISK_ROWS = [500, 1500, 2500, 3500, 4500, 5500, 6500, 7500, 8500, 9500]
+const DEFAULT_LOSS_ROWS = [-4500, -3500, -2500, -1500, -500, 500, 1500, 2500, 3500, 4500]
 
-const clamp = (x: number, [lo, hi]: readonly [number, number]) => Math.min(hi, Math.max(lo, x));
+const clamp = (x: number, [lo, hi]: readonly [number, number]) => Math.min(hi, Math.max(lo, x))
 
 /** Certainty equivalent (points) from the first row where the sure amount is taken. */
 function certaintyEquivalent(
@@ -38,10 +38,10 @@ function certaintyEquivalent(
   top: number,
   bottom: number,
 ): number {
-  const first = takesSure.indexOf(true);
-  if (first === -1) return (rows[rows.length - 1]! + top) / 2;
-  if (first === 0) return (bottom + rows[0]!) / 2;
-  return (rows[first - 1]! + rows[first]!) / 2;
+  const first = takesSure.indexOf(true)
+  if (first === -1) return (rows[rows.length - 1]! + top) / 2
+  if (first === 0) return (bottom + rows[0]!) / 2
+  return (rows[first - 1]! + rows[first]!) / 2
 }
 
 export function simulateDoubleMpl(
@@ -49,35 +49,35 @@ export function simulateDoubleMpl(
   rand: Rng,
   options: DoubleMplOptions = {},
 ): MplEstimate {
-  const prize = options.prize ?? 10_000;
-  const riskRows = options.riskRows ?? DEFAULT_RISK_ROWS;
-  const lossRows = options.lossRows ?? DEFAULT_LOSS_ROWS;
-  const rhoRange = options.rhoRange ?? [0.2, 1.7];
-  const lambdaRange = options.lambdaRange ?? [0.1, 4.6];
-  const d = POINTS_PER_DOLLAR;
-  const X = prize / d;
-  const v = (x: number) => ptValue(x, truth.rho, truth.lambda);
+  const prize = options.prize ?? 10_000
+  const riskRows = options.riskRows ?? DEFAULT_RISK_ROWS
+  const lossRows = options.lossRows ?? DEFAULT_LOSS_ROWS
+  const rhoRange = options.rhoRange ?? [0.2, 1.7]
+  const lambdaRange = options.lambdaRange ?? [0.1, 4.6]
+  const d = POINTS_PER_DOLLAR
+  const X = prize / d
+  const v = (x: number) => ptValue(x, truth.rho, truth.lambda)
 
   // MPL 1
-  const vLottery1 = 0.5 * v(X);
-  const sure1 = riskRows.map((s) => rand() >= logistic(truth.mu * (vLottery1 - v(s / d))));
-  const ce1 = certaintyEquivalent(riskRows, sure1, prize, 0) / d;
-  const rho = clamp(Math.log(0.5) / Math.log(ce1 / X), rhoRange);
+  const vLottery1 = 0.5 * v(X)
+  const sure1 = riskRows.map((s) => rand() >= logistic(truth.mu * (vLottery1 - v(s / d))))
+  const ce1 = certaintyEquivalent(riskRows, sure1, prize, 0) / d
+  const rho = clamp(Math.log(0.5) / Math.log(ce1 / X), rhoRange)
 
   // MPL 2
-  const vLottery2 = 0.5 * v(X) + 0.5 * v(-X);
-  const sure2 = lossRows.map((s) => rand() >= logistic(truth.mu * (vLottery2 - v(s / d))));
-  const ce2 = certaintyEquivalent(lossRows, sure2, prize, -prize) / d;
+  const vLottery2 = 0.5 * v(X) + 0.5 * v(-X)
+  const sure2 = lossRows.map((s) => rand() >= logistic(truth.mu * (vLottery2 - v(s / d))))
+  const ce2 = certaintyEquivalent(lossRows, sure2, prize, -prize) / d
 
   // Solve 0.5 X^rho - 0.5 lambda X^rho = u(ce2) for lambda, using rho from MPL 1.
-  const half = 0.5 * Math.pow(X, rho);
-  let lambda: number | null;
+  const half = 0.5 * Math.pow(X, rho)
+  let lambda: number | null
   if (ce2 >= 0) {
-    const l = 1 - Math.pow(ce2, rho) / half;
-    lambda = l > 0 ? l : null;
+    const l = 1 - Math.pow(ce2, rho) / half
+    lambda = l > 0 ? l : null
   } else {
-    const denom = half - Math.pow(-ce2, rho);
-    lambda = denom > 0 ? half / denom : null;
+    const denom = half - Math.pow(-ce2, rho)
+    lambda = denom > 0 ? half / denom : null
   }
-  return { rho, lambda: lambda === null ? null : clamp(lambda, lambdaRange) };
+  return { rho, lambda: lambda === null ? null : clamp(lambda, lambdaRange) }
 }

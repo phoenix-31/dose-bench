@@ -1,82 +1,82 @@
-import { jointMarginal, mulberry32, type Trace } from "@dose-bench/engine";
-import { ChoiceCard, DoseProgress, useDoseSession } from "@dose-bench/react";
-import { Download, Maximize2, Minimize2, RotateCcw, Shuffle } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router";
-import { CodeBlock } from "@/components/CodeBlock";
-import { OptionBody } from "@/components/OptionBody";
-import { Marginal } from "@/components/charts/Marginal";
-import { PosteriorHeatmap } from "@/components/charts/PosteriorHeatmap";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DEFAULT_TRUTH, getEngine, moduleInfo, param, type ModuleId } from "@/lib/modules";
-import { cn } from "@/lib/utils";
+import { jointMarginal, mulberry32, type Trace } from "@dose-bench/engine"
+import { ChoiceCard, DoseProgress, useDoseSession } from "@dose-bench/react"
+import { Download, Maximize2, Minimize2, RotateCcw, Shuffle } from "lucide-react"
+import { useMemo, useRef, useState } from "react"
+import { Link, useSearchParams } from "react-router"
+import { CodeBlock } from "@/components/CodeBlock"
+import { OptionBody } from "@/components/OptionBody"
+import { Marginal } from "@/components/charts/Marginal"
+import { PosteriorHeatmap } from "@/components/charts/PosteriorHeatmap"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DEFAULT_TRUTH, getEngine, moduleInfo, param, type ModuleId } from "@/lib/modules"
+import { cn } from "@/lib/utils"
 
-const LENGTHS = [6, 8, 10, 12, 15, 20] as const;
+const LENGTHS = [6, 8, 10, 12, 15, 20] as const
 
 interface RunSettings {
-  readonly length: number;
-  readonly sides: "fixed" | "random";
-  readonly focus: boolean;
+  readonly length: number
+  readonly sides: "fixed" | "random"
+  readonly focus: boolean
 }
 
 /** Settings live in the URL, so a configured run can be shared as a link. */
 function useRunSettings(moduleId: ModuleId) {
-  const [search, setSearch] = useSearchParams();
-  const len = Number(search.get("length"));
-  const sides = search.get("sides");
+  const [search, setSearch] = useSearchParams()
+  const len = Number(search.get("length"))
+  const sides = search.get("sides")
   const settings: RunSettings = {
     length: (LENGTHS as readonly number[]).includes(len) ? len : 10,
     sides: sides === "fixed" || sides === "random" ? sides : moduleInfo(moduleId).sides,
     focus: search.get("focus") === "1",
-  };
+  }
   const update = (patch: Partial<RunSettings>) => {
-    const next = { ...settings, ...patch };
-    const params = new URLSearchParams();
-    if (next.length !== 10) params.set("length", String(next.length));
-    if (next.sides !== moduleInfo(moduleId).sides) params.set("sides", next.sides);
-    if (next.focus) params.set("focus", "1");
-    setSearch(params);
-  };
-  return [settings, update] as const;
+    const next = { ...settings, ...patch }
+    const params = new URLSearchParams()
+    if (next.length !== 10) params.set("length", String(next.length))
+    if (next.sides !== moduleInfo(moduleId).sides) params.set("sides", next.sides)
+    if (next.focus) params.set("focus", "1")
+    setSearch(params)
+  }
+  return [settings, update] as const
 }
 
-const storageKey = (moduleId: ModuleId) => `dose-bench:run:${moduleId}`;
+const storageKey = (moduleId: ModuleId) => `dose-bench:run:${moduleId}`
 
 function loadTrace(moduleId: ModuleId, s: RunSettings): Trace | null {
   try {
-    const raw = localStorage.getItem(storageKey(moduleId));
-    const t = raw ? (JSON.parse(raw) as Trace) : null;
+    const raw = localStorage.getItem(storageKey(moduleId))
+    const t = raw ? (JSON.parse(raw) as Trace) : null
     // Only resume a session that was started with the settings now in the URL.
-    return t?.format === "dose-trace/2" && t.length === s.length && t.sides === s.sides ? t : null;
+    return t?.format === "dose-trace/2" && t.length === s.length && t.sides === s.sides ? t : null
   } catch {
-    return null;
+    return null
   }
 }
 function storeTrace(moduleId: ModuleId, trace: Trace | null) {
   try {
-    if (trace) localStorage.setItem(storageKey(moduleId), JSON.stringify(trace));
-    else localStorage.removeItem(storageKey(moduleId));
+    if (trace) localStorage.setItem(storageKey(moduleId), JSON.stringify(trace))
+    else localStorage.removeItem(storageKey(moduleId))
   } catch {
     // Storage blocked (private mode): the run still works, it just won't survive a reload.
   }
 }
 
 function downloadTrace(trace: Trace) {
-  const url = URL.createObjectURL(new Blob([JSON.stringify(trace, null, 2)], { type: "application/json" }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `dose-trace-${trace.model}-${trace.startedAt.slice(0, 19).replace(/[:T]/g, "-")}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const url = URL.createObjectURL(new Blob([JSON.stringify(trace, null, 2)], { type: "application/json" }))
+  const a = document.createElement("a")
+  a.href = url
+  a.download = `dose-trace-${trace.model}-${trace.startedAt.slice(0, 19).replace(/[:T]/g, "-")}.json`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 export function RunPage({ moduleId }: { moduleId: ModuleId }) {
-  const [settings, setSettings] = useRunSettings(moduleId);
+  const [settings, setSettings] = useRunSettings(moduleId)
   // A settings change starts a new participant.
   return (
     <RunSession
@@ -85,7 +85,7 @@ export function RunPage({ moduleId }: { moduleId: ModuleId }) {
       settings={settings}
       setSettings={setSettings}
     />
-  );
+  )
 }
 
 function RunSession({
@@ -93,54 +93,54 @@ function RunSession({
   settings,
   setSettings,
 }: {
-  moduleId: ModuleId;
-  settings: RunSettings;
-  setSettings: (patch: Partial<RunSettings>) => void;
+  moduleId: ModuleId
+  settings: RunSettings
+  setSettings: (patch: Partial<RunSettings>) => void
 }) {
-  const engine = getEngine(moduleId);
-  const info = moduleInfo(moduleId);
-  const [resumed] = useState(() => loadTrace(moduleId, settings));
-  const [showResumed, setShowResumed] = useState(resumed !== null && resumed.answers.length > 0);
+  const engine = getEngine(moduleId)
+  const info = moduleInfo(moduleId)
+  const [resumed] = useState(() => loadTrace(moduleId, settings))
+  const [showResumed, setShowResumed] = useState(resumed !== null && resumed.answers.length > 0)
   const s = useDoseSession(engine, {
     length: settings.length,
     sides: settings.sides,
     resume: resumed,
     onResumeError: () => storeTrace(moduleId, null),
     onAnswer: (trace) => storeTrace(moduleId, trace),
-  });
-  const [mode, setMode] = useState<"self" | "sim">("self");
-  const [truth, setTruth] = useState<Record<string, number>>(DEFAULT_TRUTH[moduleId]);
-  const rand = useRef(mulberry32(11));
-  const [running, setRunning] = useState(false);
-  const stop = useRef(false);
+  })
+  const [mode, setMode] = useState<"self" | "sim">("self")
+  const [truth, setTruth] = useState<Record<string, number>>(DEFAULT_TRUTH[moduleId])
+  const rand = useRef(mulberry32(11))
+  const [running, setRunning] = useState(false)
+  const stop = useRef(false)
 
   const joint = useMemo(
     () => jointMarginal(engine, s.session.posterior, info.axes[0], info.axes[1]),
     [engine, s.session, s.history.length, info.axes],
-  );
-  const trace = s.trace();
+  )
+  const trace = s.trace()
 
   const reset = () => {
-    stop.current = true;
-    storeTrace(moduleId, null);
-    setShowResumed(false);
-    s.reset();
-  };
+    stop.current = true
+    storeTrace(moduleId, null)
+    setShowResumed(false)
+    s.reset()
+  }
   const simulateOne = () => {
-    if (s.item) s.answer(rand.current() < engine.model.probA(truth, s.item.question));
-  };
+    if (s.item) s.answer(rand.current() < engine.model.probA(truth, s.item.question))
+  }
   const simulateRest = async () => {
-    setRunning(true);
-    stop.current = false;
-    const session = s.session;
+    setRunning(true)
+    stop.current = false
+    const session = s.session
     while (!session.done && !stop.current) {
-      const item = session.next();
-      if (!item) break;
-      s.answer(rand.current() < engine.model.probA(truth, item.question));
-      await new Promise((r) => setTimeout(r, 160));
+      const item = session.next()
+      if (!item) break
+      s.answer(rand.current() < engine.model.probA(truth, item.question))
+      await new Promise((r) => setTimeout(r, 160))
     }
-    setRunning(false);
-  };
+    setRunning(false)
+  }
 
   const participant = (
     <div className="flex flex-col gap-5">
@@ -204,7 +204,7 @@ function RunSession({
         </div>
       )}
     </div>
-  );
+  )
 
   if (settings.focus) {
     return (
@@ -222,7 +222,7 @@ function RunSession({
           )}
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -373,7 +373,7 @@ function RunSession({
         </Card>
       </div>
     </div>
-  );
+  )
 }
 
 function SettingsBar({
@@ -384,12 +384,12 @@ function SettingsBar({
   canReset,
   onDownload,
 }: {
-  settings: RunSettings;
-  setSettings: (patch: Partial<RunSettings>) => void;
-  moduleId: ModuleId;
-  onReset: () => void;
-  canReset: boolean;
-  onDownload: () => void;
+  settings: RunSettings
+  setSettings: (patch: Partial<RunSettings>) => void
+  moduleId: ModuleId
+  onReset: () => void
+  canReset: boolean
+  onDownload: () => void
 }) {
   return (
     <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
@@ -440,11 +440,11 @@ function SettingsBar({
         </Button>
       </div>
     </div>
-  );
+  )
 }
 
 function AnswerLog({ s }: { s: ReturnType<typeof useDoseSession> }) {
-  const describe = s.session.engine.model.describe;
+  const describe = s.session.engine.model.describe
   return (
     <div className="flex flex-col gap-2">
       <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">Answer log</p>
@@ -461,7 +461,7 @@ function AnswerLog({ s }: { s: ReturnType<typeof useDoseSession> }) {
         </TableHeader>
         <TableBody>
           {s.history.map((h) => {
-            const d = describe?.(h.question);
+            const d = describe?.(h.question)
             return (
               <TableRow key={h.n}>
                 <TableCell className="num">{h.n}</TableCell>
@@ -482,7 +482,7 @@ function AnswerLog({ s }: { s: ReturnType<typeof useDoseSession> }) {
                 </TableCell>
                 <TableCell className="num text-right">{h.gainBits.toFixed(2)}</TableCell>
               </TableRow>
-            );
+            )
           })}
         </TableBody>
       </Table>
@@ -490,5 +490,5 @@ function AnswerLog({ s }: { s: ReturnType<typeof useDoseSession> }) {
         Arrows show which side the chosen option was on. <Link to="/embed">Deploy it in a study →</Link>
       </p>
     </div>
-  );
+  )
 }

@@ -1,12 +1,12 @@
-import type { ParamSummary } from "@dose-bench/engine";
-import { param } from "@/lib/modules";
+import type { ParamSummary } from "@dose-bench/engine"
+import { param } from "@/lib/modules"
 
 export function Marginal({ name, s, truth }: { name: string; s: ParamSummary; truth?: number | undefined }) {
-  const meta = param(name);
+  const meta = param(name)
   const lo = s.values[0]!,
-    hi = s.values[s.values.length - 1]!;
-  const max = Math.max(...s.marginal, 1e-12);
-  const pos = (v: number) => `${((v - lo) / (hi - lo)) * 100}%`;
+    hi = s.values[s.values.length - 1]!
+  const max = Math.max(...s.marginal, 1e-12)
+  const pos = (v: number) => `${((v - lo) / (hi - lo)) * 100}%`
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-baseline gap-2">
@@ -47,5 +47,5 @@ export function Marginal({ name, s, truth }: { name: string; s: ParamSummary; tr
         <span>{hi.toFixed(meta.digits)}</span>
       </div>
     </div>
-  );
+  )
 }

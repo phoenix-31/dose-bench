@@ -1,20 +1,20 @@
-import { createEngine, type Engine, type Question } from "@dose-bench/engine";
-import { isPresetId, presetById, type PresetId } from "@dose-bench/models";
+import { createEngine, type Engine, type Question } from "@dose-bench/engine"
+import { isPresetId, presetById, type PresetId } from "@dose-bench/models"
 
-export type ModuleId = PresetId;
-export const DEFAULT_MODULE: ModuleId = "risk-loss";
-export const isModuleId = isPresetId;
-export type AnyEngine = Engine<string, Question>;
+export type ModuleId = PresetId
+export const DEFAULT_MODULE: ModuleId = "risk-loss"
+export const isModuleId = isPresetId
+export type AnyEngine = Engine<string, Question>
 
 export interface ModuleInfo {
-  readonly id: ModuleId;
-  readonly label: string;
+  readonly id: ModuleId
+  readonly label: string
   /** Heatmap axes: [x, y]. */
-  readonly axes: readonly [string, string];
-  readonly note: string;
+  readonly axes: readonly [string, string]
+  readonly note: string
   /** Side randomisation used by default, following the paper: lotteries stay on the left, payment dates swap. */
-  readonly sides: "fixed" | "random";
-  readonly prompt: string;
+  readonly sides: "fixed" | "random"
+  readonly prompt: string
 }
 
 export const MODULES: readonly ModuleInfo[] = [
@@ -42,25 +42,25 @@ export const MODULES: readonly ModuleInfo[] = [
     sides: "random",
     prompt: "Which payment would you rather receive?",
   },
-];
+]
 
-export const moduleInfo = (id: ModuleId): ModuleInfo => MODULES.find((m) => m.id === id)!;
+export const moduleInfo = (id: ModuleId): ModuleInfo => MODULES.find((m) => m.id === id)!
 
-const cache = new Map<ModuleId, AnyEngine>();
+const cache = new Map<ModuleId, AnyEngine>()
 export function getEngine(id: ModuleId): AnyEngine {
-  let e = cache.get(id);
+  let e = cache.get(id)
   if (!e) {
-    e = createEngine(presetById(id));
-    cache.set(id, e);
+    e = createEngine(presetById(id))
+    cache.set(id, e)
   }
-  return e;
+  return e
 }
 
 export interface ParamMeta {
-  readonly sym: string;
-  readonly name: string;
-  readonly digits: number;
-  readonly hint: string;
+  readonly sym: string
+  readonly name: string
+  readonly digits: number
+  readonly hint: string
 }
 
 export const PARAMS: Readonly<Record<string, ParamMeta>> = {
@@ -74,12 +74,12 @@ export const PARAMS: Readonly<Record<string, ParamMeta>> = {
   mu: { sym: "μ", name: "Choice consistency", digits: 1, hint: "higher = fewer mistakes" },
   delta: { sym: "δ", name: "Monthly discount factor", digits: 2, hint: "1 = perfectly patient" },
   beta: { sym: "β", name: "Present bias", digits: 2, hint: "below 1 = present biased" },
-};
+}
 
-export const param = (name: string): ParamMeta => PARAMS[name] ?? { sym: name, name, digits: 2, hint: "" };
+export const param = (name: string): ParamMeta => PARAMS[name] ?? { sym: name, name, digits: 2, hint: "" }
 
 export const DEFAULT_TRUTH: Readonly<Record<ModuleId, Record<string, number>>> = {
   "risk-loss": { rho: 0.8, lambda: 0.7, mu: 4 },
   time: { delta: 0.85, beta: 0.75, mu: 4 },
   "time-joint": { delta: 0.85, beta: 0.75, mu: 4, rho: 0.8 },
-};
+}

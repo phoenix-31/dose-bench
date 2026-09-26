@@ -1,5 +1,5 @@
-import type * as React from "react";
-import { cn } from "@/lib/utils";
+import type * as React from "react"
+import { cn } from "@/lib/utils"
 
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -11,7 +11,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
       )}
       {...props}
     />
-  );
+  )
 }
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -23,7 +23,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
       )}
       {...props}
     />
-  );
+  )
 }
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -32,7 +32,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
       className={cn("font-display text-lg leading-tight font-semibold", className)}
       {...props}
     />
-  );
+  )
 }
 function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -41,7 +41,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
       className={cn("text-muted-foreground max-w-prose text-sm", className)}
       {...props}
     />
-  );
+  )
 }
 function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -50,13 +50,13 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
       className={cn("col-start-2 row-span-2 row-start-1 self-start justify-self-end", className)}
       {...props}
     />
-  );
+  )
 }
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
-  return <div data-slot="card-content" className={cn("px-5", className)} {...props} />;
+  return <div data-slot="card-content" className={cn("px-5", className)} {...props} />
 }
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
-  return <div data-slot="card-footer" className={cn("flex items-center px-5", className)} {...props} />;
+  return <div data-slot="card-footer" className={cn("flex items-center px-5", className)} {...props} />
 }
 
-export { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle };
+export { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }

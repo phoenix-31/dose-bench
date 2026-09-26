@@ -1,60 +1,60 @@
-import type { RecoveryResult } from "@dose-bench/sim";
-import { useEffect, useRef, useState } from "react";
-import { RecoveryChart } from "@/components/charts/RecoveryChart";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { param, type ModuleId } from "@/lib/modules";
-import { runWorker, type WorkerTask } from "@/lib/worker-task";
-import type { RecoveryInput } from "@/workers/recovery.worker";
+import type { RecoveryResult } from "@dose-bench/sim"
+import { useEffect, useRef, useState } from "react"
+import { RecoveryChart } from "@/components/charts/RecoveryChart"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { param, type ModuleId } from "@/lib/modules"
+import { runWorker, type WorkerTask } from "@/lib/worker-task"
+import type { RecoveryInput } from "@/workers/recovery.worker"
 
-type Result = RecoveryResult<string>;
+type Result = RecoveryResult<string>
 const makeWorker = () =>
-  new Worker(new URL("../workers/recovery.worker.ts", import.meta.url), { type: "module" });
+  new Worker(new URL("../workers/recovery.worker.ts", import.meta.url), { type: "module" })
 
 export function RecoveryView({ moduleId }: { moduleId: ModuleId }) {
-  const [n, setN] = useState(100);
-  const [progress, setProgress] = useState<number | null>(null);
-  const [res, setRes] = useState<Result | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const task = useRef<WorkerTask<Result> | null>(null);
+  const [n, setN] = useState(100)
+  const [progress, setProgress] = useState<number | null>(null)
+  const [res, setRes] = useState<Result | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const task = useRef<WorkerTask<Result> | null>(null)
 
   const run = async (size = n) => {
-    task.current?.cancel();
-    setError(null);
-    setProgress(0);
+    task.current?.cancel()
+    setError(null)
+    setProgress(0)
     const t = runWorker<RecoveryInput, Result>(
       makeWorker,
       { model: moduleId, n: size, length: 10, seed: 7 },
       setProgress,
-    );
-    task.current = t;
+    )
+    task.current = t
     try {
-      setRes(await t.promise);
+      setRes(await t.promise)
     } catch (e) {
-      if ((e as Error).name !== "AbortError") setError((e as Error).message);
+      if ((e as Error).name !== "AbortError") setError((e as Error).message)
     } finally {
-      if (task.current === t) setProgress(null);
+      if (task.current === t) setProgress(null)
     }
-  };
+  }
   useEffect(() => {
-    setRes(null);
-    void run();
-    return () => task.current?.cancel();
-  }, [moduleId]);
+    setRes(null)
+    void run()
+    return () => task.current?.cancel()
+  }, [moduleId])
 
   const rows: { label: string; key: "dose" | "random" | "mpl" }[] = [
     { label: "DOSE", key: "dose" },
     { label: "Random order", key: "random" },
     ...(res?.mpl ? [{ label: "Double price list", key: "mpl" as const }] : []),
-  ];
+  ]
   const cell = (key: "dose" | "random" | "mpl", p: string) => {
-    if (!res) return undefined;
-    if (key === "mpl") return p === "rho" || p === "lambda" ? res.mpl?.[p] : undefined;
-    return res.byQuestion[key][p]?.at(-1);
-  };
+    if (!res) return undefined
+    if (key === "mpl") return p === "rho" || p === "lambda" ? res.mpl?.[p] : undefined
+    return res.byQuestion[key][p]?.at(-1)
+  }
 
   return (
     <Card>
@@ -142,7 +142,7 @@ export function RecoveryView({ moduleId }: { moduleId: ModuleId }) {
                   <TableRow key={r.key}>
                     <TableCell className="font-medium">{r.label}</TableCell>
                     {res.params.map((p) => {
-                      const a = cell(r.key, p);
+                      const a = cell(r.key, p)
                       return (
                         <FragmentCells
                           key={p}
@@ -156,7 +156,7 @@ export function RecoveryView({ moduleId }: { moduleId: ModuleId }) {
                               : ["–", "–", "–"]
                           }
                         />
-                      );
+                      )
                     })}
                   </TableRow>
                 ))}
@@ -172,7 +172,7 @@ export function RecoveryView({ moduleId }: { moduleId: ModuleId }) {
         )}
       </CardContent>
     </Card>
-  );
+  )
 }
 
 function FragmentHeads() {
@@ -182,7 +182,7 @@ function FragmentHeads() {
       <TableHead className="text-right">Inacc.</TableHead>
       <TableHead className="text-right">Rank r</TableHead>
     </>
-  );
+  )
 }
 function FragmentCells({ values }: { values: readonly string[] }) {
   return (
@@ -193,5 +193,5 @@ function FragmentCells({ values }: { values: readonly string[] }) {
         </TableCell>
       ))}
     </>
-  );
+  )
 }

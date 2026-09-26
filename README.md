@@ -51,26 +51,26 @@ pnpm dose recover risk-loss --n 400
 Run a module in your own page:
 
 ```ts
-import { DoseSession, createEngine } from "@dose-bench/engine";
-import { riskLossModel } from "@dose-bench/models";
+import { DoseSession, createEngine } from "@dose-bench/engine"
+import { riskLossModel } from "@dose-bench/models"
 
-const engine = createEngine(riskLossModel());
-const session = new DoseSession(engine, { length: 10, sides: "random" });
+const engine = createEngine(riskLossModel())
+const session = new DoseSession(engine, { length: 10, sides: "random" })
 
-const item = session.next(); // { question, text: { a, b }, swapped, gainBits, ... }
-session.answer(true); // participant chose option A (or session.choose("left"))
-session.estimate().params.lambda; // { mean, sd, median, ci90, marginal }
-const trace = session.trace(); // dose-trace/2 record: save it after every answer
-DoseSession.resume(engine, trace); // after a page reload, carry on from the same question
+const item = session.next() // { question, text: { a, b }, swapped, gainBits, ... }
+session.answer(true) // participant chose option A (or session.choose("left"))
+session.estimate().params.lambda // { mean, sd, median, ci90, marginal }
+const trace = session.trace() // dose-trace/2 record: save it after every answer
+DoseSession.resume(engine, trace) // after a page reload, carry on from the same question
 ```
 
 Or in React:
 
 ```tsx
-import { DoseModule } from "@dose-bench/react";
-import "@dose-bench/react/styles.css";
+import { DoseModule } from "@dose-bench/react"
+import "@dose-bench/react/styles.css"
 
-<DoseModule engine={engine} length={10} onAnswer={saveDraft} onComplete={(trace) => save(trace)} />;
+;<DoseModule engine={engine} length={10} onAnswer={saveDraft} onComplete={(trace) => save(trace)} />
 ```
 
 ## How it compares

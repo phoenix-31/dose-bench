@@ -4,93 +4,93 @@
  * so Qualtrics saves them. For a second module in the same survey, change PREFIX. */
 Qualtrics.SurveyEngine.addOnReady(function () {
   // ---- Settings -------------------------------------------------------------------------------
-  var MODULE = "risk-loss"; // "risk-loss", "time" or "time-joint"
-  var LENGTH = 10;
-  var SIDES = MODULE === "risk-loss" ? "fixed" : "random"; // "random" puts option A on the right about half the time
-  var MIN_RT_MS = 250; // ignore clicks sooner than this after a question appears (double clicks)
-  var PREFIX = "dose_"; // embedded data field prefix
+  var MODULE = "risk-loss" // "risk-loss", "time" or "time-joint"
+  var LENGTH = 10
+  var SIDES = MODULE === "risk-loss" ? "fixed" : "random" // "random" puts option A on the right about half the time
+  var MIN_RT_MS = 250 // ignore clicks sooner than this after a question appears (double clicks)
+  var PREFIX = "dose_" // embedded data field prefix
   // ---------------------------------------------------------------------------------------------
 
-  var q = this;
-  var box = q.getQuestionContainer();
-  var left = box.querySelector(".dose-a");
-  var right = box.querySelector(".dose-b");
-  var count = box.querySelector(".dose-count");
-  var prompt = box.querySelector(".dose-prompt");
-  var engine = DOSE.createEngine(DOSE.presetById(MODULE));
+  var q = this
+  var box = q.getQuestionContainer()
+  var left = box.querySelector(".dose-a")
+  var right = box.querySelector(".dose-b")
+  var count = box.querySelector(".dose-count")
+  var prompt = box.querySelector(".dose-prompt")
+  var engine = DOSE.createEngine(DOSE.presetById(MODULE))
 
   // Survive a page reload: the trace so far is kept in this browser, keyed by response and module. If the
   // response ID isn't available (it pipes empty in some previews), don't persist at all: a shared key would
   // let the next person on the same machine resume someone else's module.
-  var RESPONSE_ID = "${e://Field/ResponseID}";
-  var KEY = /^R_\w+$/.test(RESPONSE_ID) ? "dose:" + RESPONSE_ID + ":" + PREFIX + MODULE : null;
+  var RESPONSE_ID = "${e://Field/ResponseID}"
+  var KEY = /^R_\w+$/.test(RESPONSE_ID) ? "dose:" + RESPONSE_ID + ":" + PREFIX + MODULE : null
   function load() {
-    if (!KEY) return null;
+    if (!KEY) return null
     try {
-      var raw = window.localStorage.getItem(KEY);
-      return raw ? JSON.parse(raw) : null;
+      var raw = window.localStorage.getItem(KEY)
+      return raw ? JSON.parse(raw) : null
     } catch (e) {
-      return null;
+      return null
     }
   }
   function store(trace) {
-    if (!KEY) return;
+    if (!KEY) return
     try {
-      window.localStorage.setItem(KEY, JSON.stringify(trace));
+      window.localStorage.setItem(KEY, JSON.stringify(trace))
     } catch (e) {}
   }
 
-  var session = null;
-  var saved = load();
+  var session = null
+  var saved = load()
   if (saved) {
     try {
-      session = DOSE.DoseSession.resume(engine, saved);
+      session = DOSE.DoseSession.resume(engine, saved)
     } catch (e) {
-      session = null; // different module settings or script version: start again
+      session = null // different module settings or script version: start again
     }
   }
-  if (!session) session = new DOSE.DoseSession(engine, { length: LENGTH, sides: SIDES });
+  if (!session) session = new DOSE.DoseSession(engine, { length: LENGTH, sides: SIDES })
 
-  if (prompt && MODULE !== "risk-loss") prompt.textContent = "Which payment would you rather receive?";
+  if (prompt && MODULE !== "risk-loss") prompt.textContent = "Which payment would you rather receive?"
 
   function save(trace) {
-    Qualtrics.SurveyEngine.setEmbeddedData(PREFIX + "trace", JSON.stringify(trace));
-    for (var k in trace.estimate) Qualtrics.SurveyEngine.setEmbeddedData(PREFIX + k, trace.estimate[k].mean);
+    Qualtrics.SurveyEngine.setEmbeddedData(PREFIX + "trace", JSON.stringify(trace))
+    for (var k in trace.estimate) Qualtrics.SurveyEngine.setEmbeddedData(PREFIX + k, trace.estimate[k].mean)
   }
 
   function finish() {
-    save(session.trace());
-    q.showNextButton();
-    q.clickNextButton();
+    save(session.trace())
+    q.showNextButton()
+    q.clickNextButton()
   }
 
-  var shownAt = 0;
-  var locked = true;
+  var shownAt = 0
+  var locked = true
   function show() {
-    var item = session.next();
-    if (!item) return finish();
-    left.textContent = item.swapped ? item.text.b : item.text.a;
-    right.textContent = item.swapped ? item.text.a : item.text.b;
-    count.textContent = "Question " + item.n + " of " + session.length;
-    shownAt = Date.now();
-    locked = false;
+    var item = session.next()
+    if (!item) return finish()
+    left.textContent = item.swapped ? item.text.b : item.text.a
+    right.textContent = item.swapped ? item.text.a : item.text.b
+    count.textContent = "Question " + item.n + " of " + session.length
+    shownAt = Date.now()
+    locked = false
   }
   function choose(position) {
-    if (locked || Date.now() - shownAt < MIN_RT_MS) return;
-    locked = true;
-    session.choose(position);
-    var trace = session.trace();
-    store(trace);
-    save(trace);
-    show();
+    if (locked || Date.now() - shownAt < MIN_RT_MS) return
+    locked = true
+    session.choose(position)
+    var trace = session.trace()
+    store(trace)
+    save(trace)
+    show()
   }
   left.onclick = function () {
-    choose("left");
-  };
+    choose("left")
+  }
   right.onclick = function () {
-    choose("right");
-  };
+    choose("right")
+  }
 
-  q.hideNextButton();
-  show();
-});
+  q.hideNextButton()
+  show()
+})

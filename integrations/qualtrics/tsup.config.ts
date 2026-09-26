@@ -1,4 +1,4 @@
-import { defineConfig } from "tsup";
+import { defineConfig } from "tsup"
 
 // One self-contained file for survey platforms: `<script src="dose.iife.js">` defines window.DOSE.
 export default defineConfig({
@@ -11,7 +11,7 @@ export default defineConfig({
   clean: true,
   noExternal: [/@dose-bench\//],
   esbuildOptions(o) {
-    o.conditions = ["dose-bench-source"];
+    o.conditions = ["dose-bench-source"]
   },
   outExtension: () => ({ js: ".iife.js" }),
-});
+})

@@ -1,70 +1,70 @@
-import { isLeaf, type Tree } from "@dose-bench/compiler";
-import { Download } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { CodeBlock } from "@/components/CodeBlock";
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getEngine, param, type ModuleId } from "@/lib/modules";
-import { runWorker, type WorkerTask } from "@/lib/worker-task";
-import type { CompileInput } from "@/workers/compile.worker";
+import { isLeaf, type Tree } from "@dose-bench/compiler"
+import { Download } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { CodeBlock } from "@/components/CodeBlock"
+import { Button } from "@/components/ui/button"
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { getEngine, param, type ModuleId } from "@/lib/modules"
+import { runWorker, type WorkerTask } from "@/lib/worker-task"
+import type { CompileInput } from "@/workers/compile.worker"
 
 const makeWorker = () =>
-  new Worker(new URL("../workers/compile.worker.ts", import.meta.url), { type: "module" });
+  new Worker(new URL("../workers/compile.worker.ts", import.meta.url), { type: "module" })
 
 export function CompileView({ moduleId }: { moduleId: ModuleId }) {
-  const engine = getEngine(moduleId);
-  const [length, setLength] = useState(8);
-  const [progress, setProgress] = useState<number | null>(null);
-  const [tree, setTree] = useState<Tree | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [path, setPath] = useState<boolean[]>([]);
-  const task = useRef<WorkerTask<Tree> | null>(null);
+  const engine = getEngine(moduleId)
+  const [length, setLength] = useState(8)
+  const [progress, setProgress] = useState<number | null>(null)
+  const [tree, setTree] = useState<Tree | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [path, setPath] = useState<boolean[]>([])
+  const task = useRef<WorkerTask<Tree> | null>(null)
 
   const compile = async (len = length) => {
-    task.current?.cancel();
-    setTree(null);
-    setPath([]);
-    setError(null);
-    setProgress(0);
-    const t = runWorker<CompileInput, Tree>(makeWorker, { model: moduleId, length: len }, setProgress);
-    task.current = t;
+    task.current?.cancel()
+    setTree(null)
+    setPath([])
+    setError(null)
+    setProgress(0)
+    const t = runWorker<CompileInput, Tree>(makeWorker, { model: moduleId, length: len }, setProgress)
+    task.current = t
     try {
-      setTree(await t.promise);
+      setTree(await t.promise)
     } catch (e) {
-      if ((e as Error).name !== "AbortError") setError((e as Error).message);
+      if ((e as Error).name !== "AbortError") setError((e as Error).message)
     } finally {
-      if (task.current === t) setProgress(null);
-    }
-  };
-
-  useEffect(() => {
-    void compile();
-    return () => task.current?.cancel();
-  }, [moduleId]);
-
-  const json = useMemo(() => (tree ? JSON.stringify(tree) : ""), [tree]);
-  const download = () => {
-    const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${moduleId}-${tree?.length}.dose-tree.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  let node = 0;
-  const steps: { text: { a: string; b: string } | undefined; choseA: boolean }[] = [];
-  if (tree) {
-    for (const choseA of path) {
-      const n = tree.nodes[node]!;
-      if (isLeaf(n)) break;
-      steps.push({ text: engine.model.describe?.(tree.questions[n.q]!), choseA });
-      node = choseA ? n.A : n.B;
+      if (task.current === t) setProgress(null)
     }
   }
-  const current = tree?.nodes[node];
+
+  useEffect(() => {
+    void compile()
+    return () => task.current?.cancel()
+  }, [moduleId])
+
+  const json = useMemo(() => (tree ? JSON.stringify(tree) : ""), [tree])
+  const download = () => {
+    const url = URL.createObjectURL(new Blob([json], { type: "application/json" }))
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${moduleId}-${tree?.length}.dose-tree.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  let node = 0
+  const steps: { text: { a: string; b: string } | undefined; choseA: boolean }[] = []
+  if (tree) {
+    for (const choseA of path) {
+      const n = tree.nodes[node]!
+      if (isLeaf(n)) break
+      steps.push({ text: engine.model.describe?.(tree.questions[n.q]!), choseA })
+      node = choseA ? n.A : n.B
+    }
+  }
+  const current = tree?.nodes[node]
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-2">
@@ -84,8 +84,8 @@ export function CompileView({ moduleId }: { moduleId: ModuleId }) {
               <Select
                 value={String(length)}
                 onValueChange={(v) => {
-                  setLength(Number(v));
-                  void compile(Number(v));
+                  setLength(Number(v))
+                  void compile(Number(v))
                 }}
               >
                 <SelectTrigger className="w-64" aria-label="Questions per participant">
@@ -208,5 +208,5 @@ export function CompileView({ moduleId }: { moduleId: ModuleId }) {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
