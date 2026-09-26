@@ -35,6 +35,12 @@ export interface OptionText {
 export interface Model<P extends string = string, Q extends Question = Question> {
   readonly id: string;
   readonly label: string;
+  /**
+   * Anything that changes `probA` or `allowed` but isn't visible in the grids or questions (e.g. constraint
+   * options, a fixed parameter). Folded into `Engine.design` so different configurations get different
+   * fingerprints.
+   */
+  readonly designKey?: string;
   readonly params: readonly ParamSpec<P>[];
   readonly questions: readonly Q[];
   probA(theta: Theta<P>, question: Q): number;

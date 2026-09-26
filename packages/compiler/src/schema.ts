@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Trace } from "@dose-bench/engine";
+import type { AnyTrace } from "@dose-bench/engine";
 import type { Tree } from "./tree.js";
 
 const questionSchema = z.looseObject({ id: z.string().min(1), kind: z.string().min(1) });
@@ -74,8 +74,10 @@ export const treeSchema = z
     }
   });
 
-/** Schema for dose-trace/1 participant records. */
-export const traceSchema = z.object({
+const estimateSchema = z.record(z.string(), z.object({ mean: z.number(), sd: z.number().nonnegative() }));
+
+/** Schema for dose-trace/1 participant records (written by engine 0.1). */
+export const traceV1Schema = z.object({
   format: z.literal("dose-trace/1"),
   model: z.string().min(1),
   length: z.number().int().positive(),
@@ -88,8 +90,62 @@ export const traceSchema = z.object({
       gainBits: z.number(),
     }),
   ),
-  estimate: z.record(z.string(), z.object({ mean: z.number(), sd: z.number().nonnegative() })),
+  estimate: estimateSchema,
 });
+
+const isoDate = z.string().refine((s) => !Number.isNaN(Date.parse(s)), "not an ISO 8601 date");
+
+/** Schema for dose-trace/2 participant records. */
+export const traceV2Schema = z
+  .object({
+    format: z.literal("dose-trace/2"),
+    model: z.string().min(1),
+    length: z.number().int().positive(),
+    engine: z.string().min(1),
+    design: z.string().regex(/^[0-9a-f]{14}$/, "not a design fingerprint"),
+    prior: z.enum(["engine", "custom"]),
+    sides: z.enum(["fixed", "random"]),
+    seed: z.number().int().nonnegative().max(4294967295),
+    startedAt: isoDate,
+    completedAt: isoDate.nullable(),
+    resumes: z.number().int().nonnegative(),
+    answers: z.array(
+      z.object({
+        n: z.number().int().positive(),
+        question: z.string().min(1),
+        choseA: z.boolean(),
+        swapped: z.boolean(),
+        rtMs: z.number().nonnegative(),
+        tMs: z.number().nonnegative(),
+        gainBits: z.number(),
+      }),
+    ),
+    estimate: estimateSchema,
+  })
+  .superRefine((t, ctx) => {
+    if (t.answers.length > t.length)
+      ctx.addIssue({
+        code: "custom",
+        message: `${t.answers.length} answers for length ${t.length}`,
+        path: ["answers"],
+      });
+    t.answers.forEach((a, i) => {
+      if (a.n !== i + 1)
+        ctx.addIssue({ code: "custom", message: `answer ${i} has n = ${a.n}`, path: ["answers", i] });
+      if (a.swapped && t.sides === "fixed")
+        ctx.addIssue({
+          code: "custom",
+          message: "swapped answer in a fixed-sides trace",
+          path: ["answers", i],
+        });
+    });
+    // A module can also end early when no eligible question is left, so completedAt with fewer answers is fine.
+    if (t.completedAt === null && t.answers.length === t.length)
+      ctx.addIssue({ code: "custom", message: "complete trace without completedAt", path: ["completedAt"] });
+  });
+
+/** Any supported trace format. */
+export const traceSchema = z.discriminatedUnion("format", [traceV1Schema, traceV2Schema]);
 
 export type ValidationResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };
 
@@ -102,7 +158,8 @@ export function validateTree(data: unknown): ValidationResult<Tree> {
     : { ok: false, errors: toErrors(r.error) };
 }
 
-export function validateTrace(data: unknown): ValidationResult<Trace> {
+/** Validate a dose-trace/1 or dose-trace/2 record. Check `value.format` before using v2-only fields. */
+export function validateTrace(data: unknown): ValidationResult<AnyTrace> {
   const r = traceSchema.safeParse(data);
-  return r.success ? { ok: true, value: r.data as Trace } : { ok: false, errors: toErrors(r.error) };
+  return r.success ? { ok: true, value: r.data as AnyTrace } : { ok: false, errors: toErrors(r.error) };
 }

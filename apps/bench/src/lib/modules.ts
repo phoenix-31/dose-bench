@@ -1,7 +1,9 @@
 import { createEngine, type Engine, type Question } from "@dose-bench/engine";
-import { presetById, type PresetId } from "@dose-bench/models";
+import { isPresetId, presetById, type PresetId } from "@dose-bench/models";
 
 export type ModuleId = PresetId;
+export const DEFAULT_MODULE: ModuleId = "risk-loss";
+export const isModuleId = isPresetId;
 export type AnyEngine = Engine<string, Question>;
 
 export interface ModuleInfo {
@@ -10,6 +12,9 @@ export interface ModuleInfo {
   /** Heatmap axes: [x, y]. */
   readonly axes: readonly [string, string];
   readonly note: string;
+  /** Side randomisation used by default, following the paper: lotteries stay on the left, payment dates swap. */
+  readonly sides: "fixed" | "random";
+  readonly prompt: string;
 }
 
 export const MODULES: readonly ModuleInfo[] = [
@@ -18,18 +23,24 @@ export const MODULES: readonly ModuleInfo[] = [
     label: "Risk & loss",
     axes: ["lambda", "rho"],
     note: "Prospect-theory value with common power curvature and logit choice. Questions 1–4 use gain-only lotteries, as in the paper.",
+    sides: "fixed",
+    prompt: "Which would you rather have?",
   },
   {
     id: "time",
     label: "Time",
     axes: ["delta", "beta"],
     note: "Quasi-hyperbolic discounting with ρ fixed at 1. In a study, carry ρ over from the risk module.",
+    sides: "random",
+    prompt: "Which payment would you rather receive?",
   },
   {
     id: "time-joint",
     label: "Time, joint ρ",
     axes: ["delta", "rho"],
     note: "Estimates curvature alongside discounting: a 17,680-point grid, still fast enough to run live.",
+    sides: "random",
+    prompt: "Which payment would you rather receive?",
   },
 ];
 

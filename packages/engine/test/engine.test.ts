@@ -1,5 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
+import pkg from "../package.json";
 import {
   DoseSession,
   createEngine,
@@ -81,6 +82,16 @@ describe("createEngine", () => {
   it("normalises a supplied prior", () => {
     const e = createEngine(toy, { prior: new Array(engine.nPoints).fill(3) });
     expect(e.prior[0]).toBeCloseTo(1 / engine.nPoints, 12);
+  });
+
+  it("fingerprints the design: grid, questions and prior, not the instance", () => {
+    expect(createEngine(toy).design).toBe(engine.design);
+    expect(engine.design).toMatch(/^[0-9a-f]{14}$/);
+    const fewer = { ...toy, questions: toy.questions.slice(1) };
+    expect(createEngine(fewer).design).not.toBe(engine.design);
+    const tilted = Array.from({ length: engine.nPoints }, (_, k) => 1 + (k % 2));
+    expect(createEngine(toy, { prior: tilted }).design).not.toBe(engine.design);
+    expect(createEngine({ ...toy, designKey: "strict" }).design).not.toBe(engine.design);
   });
 
   it("rejects duplicate question ids and bad priors", () => {
@@ -185,11 +196,103 @@ describe("DoseSession", () => {
     expect(() => s.answer(true)).toThrow(/complete/);
   });
 
-  it("produces a dose-trace/1 record", () => {
+  it("produces a dose-trace/2 record with provenance", () => {
     const tr = answerAs({ t: 3, mu: 2 }, 5, 4).trace();
-    expect(tr.format).toBe("dose-trace/1");
+    expect(tr.format).toBe("dose-trace/2");
+    expect(tr.engine).toBe(pkg.version);
+    expect(tr.design).toBe(engine.design);
+    expect(tr.prior).toBe("engine");
+    expect(tr.resumes).toBe(0);
+    expect(Date.parse(tr.startedAt)).not.toBeNaN();
+    expect(Date.parse(tr.completedAt!)).toBeGreaterThanOrEqual(Date.parse(tr.startedAt));
     expect(tr.answers).toHaveLength(4);
+    expect(tr.answers.every((a) => a.swapped === false && a.tMs >= 0)).toBe(true);
     expect(Object.keys(tr.estimate).sort()).toEqual(["mu", "t"]);
+    expect(new DoseSession(engine).trace().completedAt).toBeNull();
+  });
+
+  it("randomises sides reproducibly from its seed, and choose() maps positions back to options", () => {
+    const sidesOf = (seed: number) => {
+      const s = new DoseSession(engine, { length: 20, sides: "random", seed });
+      const out: boolean[] = [];
+      while (!s.done) {
+        const item = s.next()!;
+        out.push(item.swapped);
+        s.choose("left");
+        expect(s.history.at(-1)!.choseA).toBe(!item.swapped);
+      }
+      return out;
+    };
+    const a = sidesOf(3);
+    expect(sidesOf(3)).toEqual(a);
+    expect(a.some(Boolean) && !a.every(Boolean)).toBe(true);
+    expect(new DoseSession(engine, { seed: 3 }).next()!.swapped).toBe(false);
+  });
+
+  it("resumes from a stored trace exactly where it left off", () => {
+    const r = mulberry32(4);
+    const truth = { t: 5.5, mu: 2 };
+    const full = new DoseSession(engine, { length: 8, sides: "random", seed: 99 });
+    const partial = new DoseSession(engine, { length: 8, sides: "random", seed: 99 });
+    const choices: boolean[] = [];
+    while (!full.done) {
+      const choseA = r() < toy.probA(truth, full.next()!.question);
+      choices.push(choseA);
+      full.answer(choseA);
+    }
+    for (const c of choices.slice(0, 5)) partial.answer(c);
+
+    const stored = JSON.parse(JSON.stringify(partial.trace()));
+    const resumed = DoseSession.resume(engine, stored);
+    expect(resumed.history.map((h) => h.question.id)).toEqual(partial.history.map((h) => h.question.id));
+    expect(resumed.next()!.swapped).toBe(partial.next()!.swapped);
+    for (const c of choices.slice(5)) resumed.answer(c);
+
+    const a = full.trace();
+    const b = resumed.trace();
+    expect(b.answers.map((x) => [x.question, x.choseA, x.swapped])).toEqual(
+      a.answers.map((x) => [x.question, x.choseA, x.swapped]),
+    );
+    expect(b.estimate).toEqual(a.estimate);
+    expect(b.resumes).toBe(1);
+    expect(b.startedAt).toBe(stored.startedAt);
+    expect(b.answers.slice(0, 5).map((x) => x.rtMs)).toEqual(
+      stored.answers.map((x: { rtMs: number }) => x.rtMs),
+    );
+  });
+
+  it("never repeats a question once the question space runs out", () => {
+    const { allowed: _unconstrained, ...free } = toy;
+    const tiny = createEngine({ ...free, questions: toy.questions.slice(0, 3) });
+    const s = new DoseSession(tiny, { length: 5 });
+    const asked: string[] = [];
+    for (let i = 0; i < 5; i++) {
+      const item = s.next();
+      if (!item) break;
+      asked.push(item.question.id);
+      s.answer(true);
+    }
+    expect(asked).toHaveLength(3);
+    expect(new Set(asked).size).toBe(3);
+    expect(s.done).toBe(true);
+    expect(s.trace().completedAt).not.toBeNull();
+  });
+
+  it("ends when the design rules out every remaining question", () => {
+    const strict = createEngine({ ...toy, allowed: (_q, history) => history.length < 2 });
+    const s = new DoseSession(strict, { length: 10 });
+    while (!s.done) s.answer(true);
+    expect(s.history).toHaveLength(2);
+    expect(s.next()).toBeNull();
+  });
+
+  it("refuses to resume under a different design, model or prior", () => {
+    const tr = answerAs({ t: 3, mu: 2 }, 5, 3).trace();
+    expect(() => DoseSession.resume(engine, { ...tr, design: "00000000000000" })).toThrow(/design/);
+    expect(() => DoseSession.resume(engine, { ...tr, model: "other" })).toThrow(/model/);
+    expect(() => DoseSession.resume(engine, { ...tr, prior: "custom" })).toThrow(/prior/);
+    const tampered = { ...tr, answers: [{ ...tr.answers[0]!, question: tr.answers[1]!.question }] };
+    expect(() => DoseSession.resume(engine, tampered)).toThrow(/now asks/);
   });
 
   it("can be re-fitted from its answers or its trace with an identical result", () => {

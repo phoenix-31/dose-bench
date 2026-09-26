@@ -1,5 +1,5 @@
 import { makeGrid, type Grid } from "./grid.js";
-import { binaryEntropy, clampProb, now } from "./math.js";
+import { binaryEntropy, clampProb, hash53, now } from "./math.js";
 import type { Answer, Model, Question } from "./types.js";
 
 export type Posterior = Float64Array;
@@ -20,6 +20,12 @@ export interface Engine<P extends string = string, Q extends Question = Question
   readonly H: Float32Array;
   readonly prior: Posterior;
   readonly questionIndex: ReadonlyMap<string, number>;
+  /**
+   * Fingerprint of the design: model id, `Model.designKey`, parameter grids, question space and prior.
+   * Functions (`probA`, `allowed`) can't be hashed, so a model whose options change them must say so in
+   * `designKey`; the presets do. Stored in traces so data can be matched to the design that produced it.
+   */
+  readonly design: string;
   readonly initMs: number;
 }
 
@@ -77,7 +83,8 @@ export function createEngine<P extends string, Q extends Question>(
     prior.fill(1 / K);
   }
 
-  return { model, grid, nPoints: K, nQuestions: nQ, L, H, prior, questionIndex, initMs: now() - t0 };
+  const design = designFingerprint(model, options.prior ? prior : null);
+  return { model, grid, nPoints: K, nQuestions: nQ, L, H, prior, questionIndex, design, initMs: now() - t0 };
 }
 
 /** Internal history: an answer plus the question's index in the engine. */
@@ -145,7 +152,8 @@ export function selectQuestion<P extends string, Q extends Question>(
   let index = -1;
   let gainBits = -Infinity;
   for (let q = 0; q < g.length; q++) {
-    if (g[q]! > gainBits + 1e-12) {
+    // Ineligible questions are marked -1; eligible ones have gain >= 0.
+    if (g[q]! >= 0 && g[q]! > gainBits + 1e-12) {
       gainBits = g[q]!;
       index = q;
     }
@@ -261,4 +269,18 @@ export function jointMarginal<P extends string, Q extends Question>(
   const iy = grid.idx[yName];
   for (let k = 0; k < K; k++) m[iy[k]!]![ix[k]!]! += p[k]!;
   return { x: xs.values, y: ys.values, m };
+}
+
+function designFingerprint<P extends string, Q extends Question>(
+  model: Model<P, Q>,
+  prior: Posterior | null,
+): string {
+  const parts = [
+    model.id,
+    model.designKey ?? "",
+    JSON.stringify(model.params.map((p) => [p.name, p.values])),
+    JSON.stringify(model.questions),
+    prior ? Array.from(prior, (w) => w.toPrecision(9)).join(",") : "uniform",
+  ];
+  return hash53(parts.join("\n"));
 }

@@ -72,6 +72,7 @@ export function riskLossModel(options: RiskLossOptions = {}): Model<RiskParam, R
   return {
     id: "risk-loss",
     label: "Risk & loss",
+    designKey: JSON.stringify({ firstGainOnly, noConsecutiveMax }),
     params: [
       { name: "rho", label: "Utility curvature ρ", values: options.grid?.rho ?? linspace(0.2, 1.7, 16) },
       { name: "lambda", label: "Loss aversion λ", values: options.grid?.lambda ?? linspace(0.1, 4.6, 24) },
